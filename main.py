@@ -22,7 +22,7 @@ space.add(ground_body, ground_shape)
 
 set_target_fps(60)
 
-init_window(1920, 1080, "QWOP-BOT")
+init_window(1280, 720, "QWOP-BOT")
 while not window_should_close():
     space.step(1.0 / 60.0)
 
