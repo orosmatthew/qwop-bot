@@ -11,15 +11,15 @@ pointer_body.position = 100, 300
 
 mass = 10
 radius = 25
-inertia = pymunk.moment_for_circle(mass, 0, radius, (0, 0))
-body = pymunk.Body(mass, inertia)
-body.position = 50, 400
 body_poly = [
     (-25, -25),
     (-25, 25),
     (25, 25),
     (25, -25)
 ]
+inertia = pymunk.moment_for_poly(mass, body_poly)  # pymunk.moment_for_circle(mass, 0, radius, (0, 0))
+body = pymunk.Body(mass, inertia)
+body.position = 50, 400
 shape = pymunk.Poly(body, body_poly)  # pymunk.Circle(body, radius, Vec2d(0, 0))
 shape.friction = 0.35
 # spring = pymunk.constraints.DampedRotarySpring(pointer_body, body, 0, 125000.0, 6000.0)
