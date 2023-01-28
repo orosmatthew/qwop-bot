@@ -78,6 +78,7 @@ space.add(ground_body, ground_shape)
 rl.set_target_fps(60)
 
 camera = rl.Camera2D(rl.Vector2(1280 / 2, 720 / 2), rl.Vector2(0, 0), 0.0, 1.0)
+rl.set_config_flags(rl.ConfigFlags.FLAG_MSAA_4X_HINT)
 
 rl.init_window(1280, 720, "QWOP-BOT")
 while not rl.window_should_close():
