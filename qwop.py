@@ -28,7 +28,7 @@ class PhysicsLimb:
 
     def draw(self, color: rl.Color) -> None:
         rl.draw_rectangle_pro(
-            rl.Rectangle(round(self.body.position.x), round(-self.body.position.y + 450), self._width, self._height),
+            rl.Rectangle(round(self.body.position.x), round(-self.body.position.y), self._width, self._height),
             rl.Vector2(self._width / 2, self._height / 2),
             -degrees(self.body.angle), color)
 
@@ -77,11 +77,16 @@ space.add(ground_body, ground_shape)
 
 rl.set_target_fps(60)
 
+camera = rl.Camera2D(rl.Vector2(1280 / 2, 720 / 2), rl.Vector2(0, 0), 0.0, 1.0)
+
 rl.init_window(1280, 720, "QWOP-BOT")
 while not rl.window_should_close():
     space.step(1.0 / 60.0)
 
+    camera.target = rl.Vector2(left_leg.body.position.x, -left_leg.body.position.y)
+
     rl.begin_drawing()
+    rl.begin_mode_2d(camera)
 
     rl.clear_background(rl.BLACK)
 
@@ -90,7 +95,7 @@ while not rl.window_should_close():
     left_leg.draw(rl.GRAY)
     right_leg.draw(rl.WHITE)
 
-    rl.draw_rectangle_pro(rl.Rectangle(round(ground_body.position.x), round(-ground_body.position.y + 450), 1000, 50),
+    rl.draw_rectangle_pro(rl.Rectangle(round(ground_body.position.x), round(-ground_body.position.y), 1000, 50),
                           rl.Vector2(1000 / 2, 50 / 2), 0.0, rl.GREEN)
 
     if rl.is_key_down(rl.KeyboardKey.KEY_P):
@@ -98,5 +103,6 @@ while not rl.window_should_close():
     if rl.is_key_down(rl.KeyboardKey.KEY_O):
         left_foot.body.apply_force_at_world_point((-10000, 0), left_foot.body.position + (0, 50))
 
+    rl.end_mode_2d()
     rl.end_drawing()
 rl.close_window()
