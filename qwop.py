@@ -28,7 +28,7 @@ class PhysicsLimb:
 
     def draw(self, color: rl.Color) -> None:
         rl.draw_rectangle_pro(
-            rl.Rectangle(int(self.body.position.x), int(-self.body.position.y + 450), self._width, self._height),
+            rl.Rectangle(round(self.body.position.x), round(-self.body.position.y + 450), self._width, self._height),
             rl.Vector2(self._width / 2, self._height / 2),
             -degrees(self.body.angle), color)
 
@@ -85,12 +85,12 @@ while not rl.window_should_close():
 
     rl.clear_background(rl.BLACK)
 
-    left_foot.draw(rl.RED)
+    left_foot.draw(rl.MAROON)
     right_foot.draw(rl.RED)
     left_leg.draw(rl.GRAY)
     right_leg.draw(rl.WHITE)
 
-    rl.draw_rectangle_pro(rl.Rectangle(int(ground_body.position.x), int(-ground_body.position.y + 450), 1000, 50),
+    rl.draw_rectangle_pro(rl.Rectangle(round(ground_body.position.x), round(-ground_body.position.y + 450), 1000, 50),
                           rl.Vector2(1000 / 2, 50 / 2), 0.0, rl.GREEN)
 
     if rl.is_key_down(rl.KeyboardKey.KEY_P):
