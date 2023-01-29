@@ -106,51 +106,56 @@ class Character:
         self.right_leg.relax_muscle()
 
 
-space = pm.Space()
-space.gravity = (0, -900.0)
+def main():
+    space = pm.Space()
+    space.gravity = (0, -900.0)
 
-character = Character(space, leg_muscle_strength=1500000.0)
+    character = Character(space, leg_muscle_strength=1500000.0)
 
-ground_body = pm.Body(body_type=pm.Body.STATIC)
-ground_body.position = 500, 0
-ground_poly = [
-    (-500, -25),
-    (-500, 25),
-    (500, 25),
-    (500, -25),
-]
-ground_shape = pm.Poly(ground_body, ground_poly)
-ground_shape.friction = 0.8
-space.add(ground_body, ground_shape)
+    ground_body = pm.Body(body_type=pm.Body.STATIC)
+    ground_body.position = 500, 0
+    ground_poly = [
+        (-500, -25),
+        (-500, 25),
+        (500, 25),
+        (500, -25),
+    ]
+    ground_shape = pm.Poly(ground_body, ground_poly)
+    ground_shape.friction = 0.8
+    space.add(ground_body, ground_shape)
 
-rl.set_target_fps(60)
+    rl.set_target_fps(60)
 
-camera = rl.Camera2D(rl.Vector2(1280 / 2, 720 / 2), rl.Vector2(0, 0), 0.0, 1.0)
-rl.set_config_flags(rl.ConfigFlags.FLAG_MSAA_4X_HINT)
+    camera = rl.Camera2D(rl.Vector2(1280 / 2, 720 / 2), rl.Vector2(0, 0), 0.0, 1.0)
+    rl.set_config_flags(rl.ConfigFlags.FLAG_MSAA_4X_HINT)
 
-rl.init_window(1280, 720, "QWOP-BOT")
-while not rl.window_should_close():
-    space.step(1.0 / 60.0)
+    rl.init_window(1280, 720, "QWOP-BOT")
+    while not rl.window_should_close():
+        space.step(1.0 / 60.0)
 
-    camera.target = rl.Vector2(character.left_leg.limb.body.position.x, -character.left_leg.limb.body.position.y)
+        camera.target = rl.Vector2(character.left_leg.limb.body.position.x, -character.left_leg.limb.body.position.y)
 
-    rl.begin_drawing()
-    rl.begin_mode_2d(camera)
+        rl.begin_drawing()
+        rl.begin_mode_2d(camera)
 
-    rl.clear_background(rl.BLACK)
+        rl.clear_background(rl.BLACK)
 
-    character.draw()
+        character.draw()
 
-    rl.draw_rectangle_pro(rl.Rectangle(round(ground_body.position.x), round(-ground_body.position.y), 1000, 50),
-                          rl.Vector2(1000 / 2, 50 / 2), 0.0, rl.GREEN)
+        rl.draw_rectangle_pro(rl.Rectangle(round(ground_body.position.x), round(-ground_body.position.y), 1000, 50),
+                              rl.Vector2(1000 / 2, 50 / 2), 0.0, rl.GREEN)
 
-    if rl.is_key_down(rl.KeyboardKey.KEY_Q):
-        character.move_legs_q()
-    elif rl.is_key_down(rl.KeyboardKey.KEY_W):
-        character.move_legs_w()
-    else:
-        character.relax_legs()
+        if rl.is_key_down(rl.KeyboardKey.KEY_Q):
+            character.move_legs_q()
+        elif rl.is_key_down(rl.KeyboardKey.KEY_W):
+            character.move_legs_w()
+        else:
+            character.relax_legs()
 
-    rl.end_mode_2d()
-    rl.end_drawing()
-rl.close_window()
+        rl.end_mode_2d()
+        rl.end_drawing()
+    rl.close_window()
+
+
+if __name__ == "__main__":
+    main()
