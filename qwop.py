@@ -13,7 +13,7 @@ def gen_rect_verts(width: float, height: float) -> list[tuple[float, float]]:
 
 
 class PhysicsLimb:
-    def __init__(self, group: int, width: float, height: float, mass: float, friction: float,
+    def __init__(self, physics_space: pm.Space, group: int, width: float, height: float, mass: float, friction: float,
                  position: tuple[float, float]):
         self._width = width
         self._height = height
@@ -26,6 +26,8 @@ class PhysicsLimb:
         self.shape.filter = pm.ShapeFilter(group)
         self.body.position = position
 
+        physics_space.add(self.body, self.shape)
+
     def draw(self, color: rl.Color) -> None:
         rl.draw_rectangle_pro(
             rl.Rectangle(round(self.body.position.x), round(-self.body.position.y), self._width, self._height),
@@ -33,34 +35,47 @@ class PhysicsLimb:
             -degrees(self.body.angle), color)
 
 
+class PhysicsLimbWithMuscle:
+    def __init__(self, physics_space: pm.Space, group: int, width: float, height: float, mass: float, friction: float,
+                 position: tuple[float, float]):
+        self.limb = PhysicsLimb(physics_space, group, width, height, mass, friction, position)
+
+        self.muscle_body = pm.Body(body_type=pm.Body.KINEMATIC)
+        self.muscle = pm.DampedRotarySpring(self.muscle_body, self.limb.body, 0, 0.0, 6000.0)
+        physics_space.add(self.muscle_body, self.muscle)
+
+    def move_muscle(self, strength: float, angle: float) -> None:
+        self.muscle.stiffness = strength
+        self.muscle_body.angle = self.limb.body.angle + angle
+
+    def relax_muscle(self) -> None:
+        self.muscle.stiffness = 0.0
+
+
 space = pm.Space()
 space.gravity = (0, -900.0)
 
-left_foot = PhysicsLimb(group=1, width=30, height=20, mass=5, friction=0.6, position=(150, 300))
-space.add(left_foot.body, left_foot.shape)
+left_foot = PhysicsLimb(space, group=1, width=30, height=20, mass=5, friction=0.6, position=(150, 300))
 
-left_leg = PhysicsLimb(group=1, width=15, height=100, mass=10, friction=0.6, position=(150, 300))
-space.add(left_leg.body, left_leg.shape)
+left_leg = PhysicsLimbWithMuscle(space, group=1, width=15, height=100, mass=10, friction=0.6, position=(150, 300))
 
-pivot_left_ankle = pm.PivotJoint(left_foot.body, left_leg.body, (0, 25), (0, -45))
+pivot_left_ankle = pm.PivotJoint(left_foot.body, left_leg.limb.body, (0, 25), (0, -45))
 space.add(pivot_left_ankle)
-rotary_limit_left_ankle = pm.RotaryLimitJoint(left_foot.body, left_leg.body, radians(-25), radians(25))
+rotary_limit_left_ankle = pm.RotaryLimitJoint(left_foot.body, left_leg.limb.body, radians(-25), radians(25))
 space.add(rotary_limit_left_ankle)
 
-right_foot = PhysicsLimb(group=1, width=30, height=20, mass=5, friction=0.8, position=(250, 300))
-space.add(right_foot.body, right_foot.shape)
+right_foot = PhysicsLimb(space, group=1, width=30, height=20, mass=5, friction=0.6, position=(250, 300))
 
-right_leg = PhysicsLimb(group=1, width=15, height=100, mass=10, friction=0.8, position=(250, 300))
-space.add(right_leg.body, right_leg.shape)
+right_leg = PhysicsLimbWithMuscle(space, group=1, width=15, height=100, mass=10, friction=0.8, position=(250, 300))
 
-pivot_right_ankle = pm.PivotJoint(right_foot.body, right_leg.body, (0, 25), (0, -45))
+pivot_right_ankle = pm.PivotJoint(right_foot.body, right_leg.limb.body, (0, 25), (0, -45))
 space.add(pivot_right_ankle)
-rotary_limit_right_ankle = pm.RotaryLimitJoint(right_foot.body, right_leg.body, radians(-25), radians(25))
+rotary_limit_right_ankle = pm.RotaryLimitJoint(right_foot.body, right_leg.limb.body, radians(-25), radians(25))
 space.add(rotary_limit_right_ankle)
 
-pivot_hip = pm.PivotJoint(left_leg.body, right_leg.body, (0, 50), (0, 50))
+pivot_hip = pm.PivotJoint(left_leg.limb.body, right_leg.limb.body, (0, 50), (0, 50))
 space.add(pivot_hip)
-rotary_limit_hip = pm.RotaryLimitJoint(left_leg.body, right_leg.body, radians(-120), radians(120))
+rotary_limit_hip = pm.RotaryLimitJoint(left_leg.limb.body, right_leg.limb.body, radians(-120), radians(120))
 space.add(rotary_limit_hip)
 
 ground_body = pm.Body(body_type=pm.Body.STATIC)
@@ -84,7 +99,7 @@ rl.init_window(1280, 720, "QWOP-BOT")
 while not rl.window_should_close():
     space.step(1.0 / 60.0)
 
-    camera.target = rl.Vector2(left_leg.body.position.x, -left_leg.body.position.y)
+    camera.target = rl.Vector2(left_leg.limb.body.position.x, -left_leg.limb.body.position.y)
 
     rl.begin_drawing()
     rl.begin_mode_2d(camera)
@@ -93,16 +108,22 @@ while not rl.window_should_close():
 
     left_foot.draw(rl.MAROON)
     right_foot.draw(rl.RED)
-    left_leg.draw(rl.GRAY)
-    right_leg.draw(rl.WHITE)
+    left_leg.limb.draw(rl.GRAY)
+    right_leg.limb.draw(rl.WHITE)
 
     rl.draw_rectangle_pro(rl.Rectangle(round(ground_body.position.x), round(-ground_body.position.y), 1000, 50),
                           rl.Vector2(1000 / 2, 50 / 2), 0.0, rl.GREEN)
 
-    if rl.is_key_down(rl.KeyboardKey.KEY_P):
-        left_foot.body.apply_force_at_world_point((10000, 0), left_foot.body.position + (0, 50))
-    if rl.is_key_down(rl.KeyboardKey.KEY_O):
-        left_foot.body.apply_force_at_world_point((-10000, 0), left_foot.body.position + (0, 50))
+    leg_muscle_strength = 1500000.0
+    if rl.is_key_down(rl.KeyboardKey.KEY_Q):
+        left_leg.move_muscle(leg_muscle_strength, -radians(50))
+        right_leg.move_muscle(leg_muscle_strength, radians(50))
+    elif rl.is_key_down(rl.KeyboardKey.KEY_W):
+        left_leg.move_muscle(leg_muscle_strength, radians(50))
+        right_leg.move_muscle(leg_muscle_strength, -radians(50))
+    else:
+        left_leg.relax_muscle()
+        right_leg.relax_muscle()
 
     rl.end_mode_2d()
     rl.end_drawing()
