@@ -57,29 +57,47 @@ class Character:
     def __init__(self, physics_space: pm.Space, leg_muscle_strength: float):
         self.leg_muscle_strength = leg_muscle_strength
 
-        self.left_foot = PhysicsLimb(physics_space, group=1, width=30, height=20, mass=5, friction=0.6,
-                                     position=(150, 300))
+        self.left_foot = PhysicsLimb(physics_space, group=1, width=30, height=20, mass=1, friction=0.6,
+                                     position=(100, 300))
 
-        self.left_leg = PhysicsLimbWithMuscle(physics_space, group=1, width=15, height=100, mass=10, friction=0.6,
-                                              position=(150, 300))
+        self.left_calf = PhysicsLimbWithMuscle(physics_space, group=1, width=15, height=100, mass=3, friction=0.6,
+                                               position=(100, 300))
 
-        self.left_ankle = pm.PivotJoint(self.left_foot.body, self.left_leg.limb.body, (0, 25), (0, -45))
+        self.left_ankle = pm.PivotJoint(self.left_foot.body, self.left_calf.limb.body, (0, 25), (0, -45))
         physics_space.add(self.left_ankle)
-        self.left_ankle_limit = pm.RotaryLimitJoint(self.left_foot.body, self.left_leg.limb.body, radians(-25),
+        self.left_ankle_limit = pm.RotaryLimitJoint(self.left_foot.body, self.left_calf.limb.body, radians(-25),
                                                     radians(25))
         physics_space.add(self.left_ankle_limit)
 
-        self.right_foot = PhysicsLimb(physics_space, group=1, width=30, height=20, mass=5, friction=0.6,
+        self.left_leg = PhysicsLimbWithMuscle(physics_space, group=1, width=15, height=100, mass=3, friction=0.6,
+                                              position=(100, 300))
+
+        self.left_knee = pm.PivotJoint(self.left_calf.limb.body, self.left_leg.limb.body, (0, 50), (0, -50))
+        physics_space.add(self.left_knee)
+        self.left_knee_limit = pm.RotaryLimitJoint(self.left_calf.limb.body, self.left_leg.limb.body, radians(0),
+                                                   radians(140))
+        physics_space.add(self.left_knee_limit)
+
+        self.right_foot = PhysicsLimb(physics_space, group=1, width=30, height=20, mass=1, friction=0.6,
                                       position=(250, 300))
 
-        self.right_leg = PhysicsLimbWithMuscle(physics_space, group=1, width=15, height=100, mass=10, friction=0.8,
-                                               position=(250, 300))
+        self.right_calf = PhysicsLimbWithMuscle(physics_space, group=1, width=15, height=100, mass=3, friction=0.6,
+                                                position=(250, 300))
 
-        self.right_ankle = pm.PivotJoint(self.right_foot.body, self.right_leg.limb.body, (0, 25), (0, -45))
+        self.right_ankle = pm.PivotJoint(self.right_foot.body, self.right_calf.limb.body, (0, 25), (0, -45))
         physics_space.add(self.right_ankle)
-        self.right_ankle_limit = pm.RotaryLimitJoint(self.right_foot.body, self.right_leg.limb.body, radians(-25),
+        self.right_ankle_limit = pm.RotaryLimitJoint(self.right_foot.body, self.right_calf.limb.body, radians(-25),
                                                      radians(25))
         physics_space.add(self.right_ankle_limit)
+
+        self.right_leg = PhysicsLimbWithMuscle(physics_space, group=1, width=15, height=100, mass=3, friction=0.8,
+                                               position=(250, 300))
+
+        self.right_knee = pm.PivotJoint(self.right_calf.limb.body, self.right_leg.limb.body, (0, 50), (0, -50))
+        physics_space.add(self.right_knee)
+        self.right_knee_limit = pm.RotaryLimitJoint(self.right_calf.limb.body, self.right_leg.limb.body, radians(0),
+                                                    radians(140))
+        physics_space.add(self.right_knee_limit)
 
         self.hip = pm.PivotJoint(self.left_leg.limb.body, self.right_leg.limb.body, (0, 50), (0, 50))
         physics_space.add(self.hip)
@@ -88,10 +106,14 @@ class Character:
         physics_space.add(self.hip_limit)
 
     def draw(self) -> None:
-        self.left_foot.draw(rl.MAROON)
-        self.right_foot.draw(rl.RED)
         self.left_leg.limb.draw(rl.GRAY)
         self.right_leg.limb.draw(rl.WHITE)
+
+        self.left_calf.limb.draw(rl.GRAY)
+        self.right_calf.limb.draw(rl.WHITE)
+
+        self.left_foot.draw(rl.MAROON)
+        self.right_foot.draw(rl.RED)
 
     def move_legs_q(self) -> None:
         self.left_leg.move_muscle(self.leg_muscle_strength, -radians(50))
@@ -101,19 +123,39 @@ class Character:
         self.left_leg.move_muscle(self.leg_muscle_strength, radians(50))
         self.right_leg.move_muscle(self.leg_muscle_strength, -radians(50))
 
+    def move_knees_o(self) -> None:
+        self.left_calf.move_muscle(self.leg_muscle_strength, radians(50))
+        self.right_calf.move_muscle(self.leg_muscle_strength, -radians(50))
+
+    def move_knees_p(self) -> None:
+        self.left_calf.move_muscle(self.leg_muscle_strength, -radians(50))
+        self.right_calf.move_muscle(self.leg_muscle_strength, radians(50))
+
+    def hold_legs(self) -> None:
+        self.left_leg.move_muscle(self.leg_muscle_strength, 0)
+        self.right_leg.move_muscle(self.leg_muscle_strength, 0)
+
+    def hold_knees(self) -> None:
+        self.left_calf.move_muscle(self.leg_muscle_strength, 0)
+        self.right_calf.move_muscle(self.leg_muscle_strength, 0)
+
     def relax_legs(self) -> None:
         self.left_leg.relax_muscle()
         self.right_leg.relax_muscle()
+
+    def relax_knees(self) -> None:
+        self.left_calf.relax_muscle()
+        self.right_calf.relax_muscle()
 
 
 def main():
     space = pm.Space()
     space.gravity = (0, -900.0)
 
-    character = Character(space, leg_muscle_strength=1500000.0)
+    character = Character(space, leg_muscle_strength=1000000.0)
 
     ground_body = pm.Body(body_type=pm.Body.STATIC)
-    ground_body.position = 500, 0
+    ground_body.position = 500, 150
     ground_poly = [
         (-500, -25),
         (-500, 25),
@@ -150,7 +192,14 @@ def main():
         elif rl.is_key_down(rl.KeyboardKey.KEY_W):
             character.move_legs_w()
         else:
-            character.relax_legs()
+            character.hold_legs()
+
+        if rl.is_key_down(rl.KeyboardKey.KEY_O):
+            character.move_knees_o()
+        elif rl.is_key_down(rl.KeyboardKey.KEY_P):
+            character.move_knees_p()
+        else:
+            character.hold_knees()
 
         rl.end_mode_2d()
         rl.end_drawing()
