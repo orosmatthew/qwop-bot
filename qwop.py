@@ -3,6 +3,8 @@ import pymunk as pm
 from math import degrees, radians
 
 
+# Takes in a width and height (in pixels) of a rectangle and then returns
+# a list of 4 vertices which describe the four corners
 def gen_rect_verts(width: float, height: float) -> list[tuple[float, float]]:
     return [
         (- width / 2, -height / 2),
@@ -15,19 +17,28 @@ def gen_rect_verts(width: float, height: float) -> list[tuple[float, float]]:
 class PhysicsLimb:
     def __init__(self, physics_space: pm.Space, group: int, width: float, height: float, mass: float, friction: float,
                  position: tuple[float, float]):
+        # Save the width and height
         self._width = width
         self._height = height
-
+        # Get the vertices for the limb
         self.verts = gen_rect_verts(width, height)
+        # A moment is the rotational inertia of the limb.
+        # This calculates the moment from the polygon
         self.moment = pm.moment_for_poly(mass, self.verts)
+        # The body is the actual physics object
         self.body = pm.Body(mass, self.moment)
+        # The shape describes the shape of the body
         self.shape = pm.Poly(self.body, self.verts)
         self.shape.friction = friction
+        # This filter prevents other limbs from interacting.
+        # Shapes with the same filter ignore each other
         self.shape.filter = pm.ShapeFilter(group)
         self.body.position = position
 
+        # Add the limb to the physics world
         physics_space.add(self.body, self.shape)
 
+    # Draw the limb with a specified color
     def draw(self, color: rl.Color) -> None:
         rl.draw_rectangle_pro(
             rl.Rectangle(round(self.body.position.x), round(-self.body.position.y), self._width, self._height),
@@ -38,22 +49,30 @@ class PhysicsLimb:
 class PhysicsLimbWithMuscle:
     def __init__(self, physics_space: pm.Space, group: int, width: float, height: float, mass: float, friction: float,
                  position: tuple[float, float]):
+        # Create the base limb without the muscle
         self.limb = PhysicsLimb(physics_space, group, width, height, mass, friction, position)
-
+        # Create muscle body which is a target for where the body should rotate to.
+        # It is a kinematic body which means that it does not have physics but is
+        # only moved using code that we write.
         self.muscle_body = pm.Body(body_type=pm.Body.KINEMATIC)
+        # The muscle itself is a rotational spring between the muscle body target and the limb.
+        # As we tell the muscle body to rotate, the spring will pull the limb to rotate the same way
+        # with a springiness
         self.muscle = pm.DampedRotarySpring(self.muscle_body, self.limb.body, 0, 0.0, 6000.0)
+        # Add it to the physics world
         physics_space.add(self.muscle_body, self.muscle)
 
+    # Move the muscle with a specified strength and the angle relative to the limb
     def move_muscle(self, strength: float, angle: float) -> None:
         self.muscle.stiffness = strength
         self.muscle_body.angle = self.limb.body.angle + angle
 
+    # Relax the muscle by making the rotational spring have no stiffness
     def relax_muscle(self) -> None:
         self.muscle.stiffness = 0.0
 
 
 class Character:
-
     def __init__(self, physics_space: pm.Space, leg_muscle_strength: float):
         self.leg_muscle_strength = leg_muscle_strength
 
@@ -152,7 +171,7 @@ def main():
     space = pm.Space()
     space.gravity = (0, -900.0)
 
-    character = Character(space, leg_muscle_strength=1000000.0)
+    character = Character(space, leg_muscle_strength=500_000.0)
 
     ground_body = pm.Body(body_type=pm.Body.STATIC)
     ground_body.position = 500, 150
