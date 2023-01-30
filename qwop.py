@@ -31,7 +31,7 @@ class PhysicsLimb:
         self.shape = pm.Poly(self.body, self.verts)
         self.shape.friction = friction
         # This filter prevents other limbs from interacting.
-        # Shapes with the same filter ignore each other
+        # Shapes with the same group number ignore each other
         self.shape.filter = pm.ShapeFilter(group)
         self.body.position = position
 
