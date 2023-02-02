@@ -191,6 +191,7 @@ def main():
     rl.set_config_flags(rl.ConfigFlags.FLAG_MSAA_4X_HINT)
 
     rl.init_window(1280, 720, "QWOP-BOT")
+    
     while not rl.window_should_close():
         space.step(1.0 / 60.0)
 
