@@ -100,7 +100,29 @@ class Character:
         physics_space.add(self.neck_to_torso)
         physics_space.add(self.neck_to_head)
 
-        
+        self.right_bicepts = PhysicsLimbWithMuscle(physics_space, group=2, width=15, height=80, mass=0.2, friction=0.6,
+                                                    position=(200,400))
+        self.left_bicepts = PhysicsLimbWithMuscle(physics_space, group=2, width=15, height=80, mass=0.2, friction=0.6,
+                                                    position=(200,400))
+
+        self.right_forearm = PhysicsLimb(physics_space, group=2, width=15, height=70, mass=0.1, friction=0.6,
+                                                    position=(210,400))
+        self.left_forearm = PhysicsLimb(physics_space, group=2, width=15, height=70, mass=0.1, friction=0.6,
+                                                    position=(210,300))
+
+        self.right_bicepts_to_forearm = pm.PivotJoint(self.right_bicepts.limb.body, self.right_forearm.body, (0,-40), (0,35))
+        self.left_bicepts_to_forearm = pm.PivotJoint(self.left_bicepts.limb.body, self.left_forearm.body, (0,-40), (0,35))
+
+        physics_space.add(self.right_bicepts_to_forearm)
+        physics_space.add(self.left_bicepts_to_forearm)
+
+        self.right_arm_to_torso = pm.PivotJoint(self.right_bicepts.limb.body, self.torso.body, (3, 45), (0,60))
+        self.left_arm_to_torso = pm.PivotJoint(self.left_bicepts.limb.body, self.torso.body, (-3, 45), (0,60))
+
+        physics_space.add(self.right_arm_to_torso)
+        physics_space.add(self.left_arm_to_torso)
+
+
 
 
 
@@ -194,6 +216,10 @@ class Character:
 
         self.neck.limb.draw(rl.BEIGE)
 
+        self.left_bicepts.limb.draw(rl.GRAY)
+        self.right_bicepts.limb.draw(rl.WHITE)
+        self.left_forearm.draw(rl.GRAY)
+        self.right_forearm.draw(rl.WHITE)
         
 
         
