@@ -85,10 +85,10 @@ class Character:
                                     position=(200,600))
 
         self.neck = PhysicsLimbWithMuscle(physics_space, group=4, width=20, height=10, mass=0.2, friction=0.2, 
-                                    position=(200,680))
+                                    position=(230,630))
 
         self.head = PhysicsLimb(physics_space, group=3, width=40, height=40, mass=0.3, friction=0.2, 
-                                    position=(200,690))
+                                    position=(230,650))
 
         
 
@@ -100,15 +100,15 @@ class Character:
         physics_space.add(self.neck_to_torso)
         physics_space.add(self.neck_to_head)
 
-        self.right_bicepts = PhysicsLimbWithMuscle(physics_space, group=2, width=15, height=80, mass=0.2, friction=0.6,
-                                                    position=(200,400))
-        self.left_bicepts = PhysicsLimbWithMuscle(physics_space, group=2, width=15, height=80, mass=0.2, friction=0.6,
-                                                    position=(200,400))
+        self.right_bicepts = PhysicsLimbWithMuscle(physics_space, group=2, width=15, height=80, mass=0.01, friction=0.6,
+                                                    position=(230,400))
+        self.left_bicepts = PhysicsLimbWithMuscle(physics_space, group=2, width=15, height=80, mass=0.01, friction=0.6,
+                                                    position=(230,400))
 
-        self.right_forearm = PhysicsLimb(physics_space, group=2, width=15, height=70, mass=0.1, friction=0.6,
-                                                    position=(210,400))
+        self.right_forearm = PhysicsLimb(physics_space, group=2, width=15, height=70, mass=0.01, friction=0.6,
+                                                    position=(230,400))
         self.left_forearm = PhysicsLimb(physics_space, group=2, width=15, height=70, mass=0.1, friction=0.6,
-                                                    position=(210,300))
+                                                    position=(230,400))
 
         self.right_bicepts_to_forearm = pm.PivotJoint(self.right_bicepts.limb.body, self.right_forearm.body, (0,-40), (0,35))
         self.left_bicepts_to_forearm = pm.PivotJoint(self.left_bicepts.limb.body, self.left_forearm.body, (0,-40), (0,35))
@@ -116,15 +116,20 @@ class Character:
         physics_space.add(self.right_bicepts_to_forearm)
         physics_space.add(self.left_bicepts_to_forearm)
 
-        self.right_arm_to_torso = pm.PivotJoint(self.right_bicepts.limb.body, self.torso.body, (3, 45), (0,60))
-        self.left_arm_to_torso = pm.PivotJoint(self.left_bicepts.limb.body, self.torso.body, (-3, 45), (0,60))
+        self.right_arm_to_torso = pm.PivotJoint(self.right_bicepts.limb.body, self.torso.body, (3, 45), (0,66))
+        self.left_arm_to_torso = pm.PivotJoint(self.left_bicepts.limb.body, self.torso.body, (-3, 45), (0,66))
 
         physics_space.add(self.right_arm_to_torso)
         physics_space.add(self.left_arm_to_torso)
 
+        self.right_elbow_limit = pm.RotaryLimitJoint(self.right_bicepts.limb.body, self.right_forearm.body, radians(30),
+                                              radians(155))
 
+        self.left_elbow_limit = pm.RotaryLimitJoint(self.left_bicepts.limb.body, self.left_forearm.body, radians(30),
+                                              radians(155))
 
-
+        physics_space.add(self.right_elbow_limit)
+        physics_space.add(self.left_elbow_limit)
 
 
 
