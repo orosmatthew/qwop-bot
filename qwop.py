@@ -225,7 +225,7 @@ class Character:
         self.right_bicepts.limb.draw(rl.WHITE)
         self.left_forearm.draw(rl.GRAY)
         self.right_forearm.draw(rl.WHITE)
-        
+
 
         
 
@@ -321,6 +321,10 @@ def main():
             character.hold_knees()
 
         rl.end_mode_2d()
+
+        position = character.torso.body.position
+        rl.draw_text(str(round(position[0], 0) ), 20, 0, 50, (153, 204, 255, 255) )
+        
         rl.end_drawing()
     rl.close_window()
 
