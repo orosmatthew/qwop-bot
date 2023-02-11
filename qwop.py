@@ -239,24 +239,24 @@ class Character:
         self.right_forearm.draw(rl.WHITE)
 
     def move_legs_q(self) -> None:
-        self.left_leg.move_muscle(self.leg_muscle_strength, -radians(50))
-        self.right_leg.move_muscle(self.leg_muscle_strength, radians(50))
+        self.left_leg.move_muscle(self.leg_muscle_strength, -radians(40))
+        self.right_leg.move_muscle(self.leg_muscle_strength, radians(40))
         self.right_biceps.move_muscle(self.arm_muscle_strength, radians(120))
         self.left_biceps.move_muscle(self.arm_muscle_strength, radians(-120))
 
     def move_legs_w(self) -> None:
-        self.left_leg.move_muscle(self.leg_muscle_strength, radians(50))
-        self.right_leg.move_muscle(self.leg_muscle_strength, -radians(50))
+        self.left_leg.move_muscle(self.leg_muscle_strength, radians(40))
+        self.right_leg.move_muscle(self.leg_muscle_strength, -radians(40))
         self.right_biceps.move_muscle(self.arm_muscle_strength, radians(-120))
         self.left_biceps.move_muscle(self.arm_muscle_strength, radians(120))
 
     def move_knees_o(self) -> None:
-        self.left_calf.move_muscle(self.leg_muscle_strength, radians(50))
-        self.right_calf.move_muscle(self.leg_muscle_strength, -radians(50))
+        self.left_calf.move_muscle(self.leg_muscle_strength, radians(40))
+        self.right_calf.move_muscle(self.leg_muscle_strength, -radians(40))
 
     def move_knees_p(self) -> None:
-        self.left_calf.move_muscle(self.leg_muscle_strength, -radians(50))
-        self.right_calf.move_muscle(self.leg_muscle_strength, radians(50))
+        self.left_calf.move_muscle(self.leg_muscle_strength, -radians(40))
+        self.right_calf.move_muscle(self.leg_muscle_strength, radians(40))
 
     def hold_legs(self) -> None:
         self.left_leg.move_muscle(self.leg_muscle_strength, 0)
@@ -279,10 +279,10 @@ def main():
     space = pm.Space()
     space.gravity = (0, -900.0)
 
-    character = Character(space, leg_muscle_strength=500_000.0, arm_muscle_strength=100_000.0)
+    character = Character(space, leg_muscle_strength=1_000_000.0, arm_muscle_strength=50_000.0)
 
     ground_body = pm.Body(body_type=pm.Body.STATIC)
-    ground_body.position = 500, 150
+    ground_body.position = 300, 150
     ground_poly = [
         (-500, -25),
         (-500, 25),
@@ -302,7 +302,7 @@ def main():
     while not rl.window_should_close():
         space.step(1.0 / 60.0)
 
-        camera.target = rl.Vector2(character.left_leg.limb.body.position.x, -character.left_leg.limb.body.position.y)
+        camera.target = rl.Vector2(character.torso.body.position.x, -character.torso.body.position.y + 100)
 
         rl.begin_drawing()
         rl.begin_mode_2d(camera)
@@ -331,8 +331,8 @@ def main():
         rl.end_mode_2d()
 
         position = character.torso.body.position
-        rl.draw_text("Distance: " +str(round(position[0], 0) ) + "m", 20, 0, 50, (153, 204, 255, 255) )
-        rl.draw_text("Time: " + str(round(rl.get_time(), 2)  ), 20, 50, 50, (153, 204, 255, 255) )
+        rl.draw_text("Distance: " + str(round(position[0], 0) / 1000.0) + "m", 20, 0, 50, rl.Color(153, 204, 255, 255))
+        rl.draw_text("Time: " + str(round(rl.get_time(), 2)), 20, 50, 50, rl.Color(153, 204, 255, 255))
 
         rl.end_drawing()
     rl.close_window()
