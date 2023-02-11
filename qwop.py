@@ -329,6 +329,11 @@ def main():
             character.hold_knees()
 
         rl.end_mode_2d()
+
+        position = character.torso.body.position
+        rl.draw_text("Distance: " +str(round(position[0], 0) ) + "m", 20, 0, 50, (153, 204, 255, 255) )
+        rl.draw_text("Time: " + str(round(rl.get_time(), 2)  ), 20, 50, 50, (153, 204, 255, 255) )
+
         rl.end_drawing()
     rl.close_window()
 
