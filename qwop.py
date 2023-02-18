@@ -211,6 +211,9 @@ class Character:
         physics_space.add(self.body_left_leg_limit)
         physics_space.add(self.body_right_leg_limit)
 
+        
+
+            
         ##################
         # self.hip = pm.PivotJoint(self.left_leg.limb.body, self.right_leg.limb.body, (0, 50), (0, 50))
         # physics_space.add(self.hip)
@@ -274,6 +277,36 @@ class Character:
         self.left_calf.relax_muscle()
         self.right_calf.relax_muscle()
 
+class Position:
+    def __init__(self, torso_position: tuple,
+                        head_position: tuple,
+                        right_forearm_position: tuple,
+                        right_bicepts_position: tuple,
+                        left_forearm_position: tuple,
+                        left_bicepts_position: tuple,
+                        right_leg_position: tuple,
+                        right_calf_position: tuple,
+                        right_foot_position: tuple,
+                        left_leg_position: tuple,
+                        left_calf_position: tuple,
+                        left_foot_position: tuple,
+                        ):
+
+        self.torso_position = torso_position 
+        self.head_position = head_position
+        self.right_forearm_position = right_forearm_position
+        self.right_bicepts_position = right_bicepts_position
+        self.left_forearm_position = left_forearm_position
+        self.left_bicepts_position = left_bicepts_position
+        self.right_leg_position = right_leg_position
+        self.right_calf_position = right_calf_position
+        self.right_foot_position = right_foot_position
+        self.left_leg_position = left_leg_position
+        self.left_calf_position = left_calf_position
+        self.left_foot_position = left_foot_position
+    
+    def get_position(self):
+        return self
 
 def main():
     space = pm.Space()
@@ -330,8 +363,23 @@ def main():
 
         rl.end_mode_2d()
 
-        position = character.torso.body.position
-        rl.draw_text("Distance: " + str(round(position[0], 0) / 1000.0) + "m", 20, 0, 50, rl.Color(153, 204, 255, 255))
+        positions = Position(character.torso.body.position, 
+                            character.head.body.position, 
+                            character.right_forearm.body.position,
+                            character.right_biceps.limb.body.position,
+                            character.left_forearm.body.position,
+                            character.left_biceps.limb.body.position,
+                            character.right_leg.limb.body.position,
+                            character.right_calf.limb.body.position,
+                            character.right_foot.body.position,
+                            character.left_leg.limb.body.position,
+                            character.left_calf.limb.body.position,
+                            character.left_foot.body.position)
+
+        
+        
+        
+        rl.draw_text("Distance: " + str(round(positions.left_foot_position[0], 0) / 1000.0) + "m", 20, 0, 50, rl.Color(153, 204, 255, 255))
         rl.draw_text("Time: " + str(round(rl.get_time(), 2)), 20, 50, 50, rl.Color(153, 204, 255, 255))
 
         rl.end_drawing()
