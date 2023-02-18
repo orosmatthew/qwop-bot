@@ -1,7 +1,8 @@
 import pyray as rl
 import pymunk as pm
 from math import degrees, radians
-
+import sys
+import os
 
 # Takes in a width and height (in pixels) of a rectangle and then returns
 # a list of 4 vertices which describe the four corners
@@ -324,6 +325,7 @@ def main():
     ]
     ground_shape = pm.Poly(ground_body, ground_poly)
     ground_shape.friction = 0.8
+    ground_shape.collision_type
     space.add(ground_body, ground_shape)
 
     rl.set_target_fps(60)
@@ -377,7 +379,35 @@ def main():
                             character.left_foot.body.position)
 
         
-        
+        #List of Actions would be:
+        # character.move_legs_q(), 
+        # character.move_legs_w(), 
+        # character.hold_legs(), 
+        # character.move_knees_o(), 
+        # character.move_knees_p()
+
+        def on_collision(arbiter, space, data):
+            # Get the shapes that collided
+            shape_1, shape_2 = arbiter.shapes
+            list_of_shapes = [character.head.shape, 
+                                character.torso.shape, 
+                                character.right_biceps.limb.shape, 
+                                character.right_forearm.shape, 
+                                character.left_biceps.limb.shape, 
+                                character.left_forearm.shape]
+
+            # Check if the colliding shapes belong to the head and floor
+            if (shape_1 in list_of_shapes and shape_2 == ground_shape) or (shape_1 == ground_shape and shape_2 in list_of_shapes):
+                # Restart the application
+                # python_path = sys.executable
+                # script_path = os.path.abspath(__file__)
+                # os.execl(python_path, python_path, script_path)
+                print("UPPER-BODY TOUCHED THE FLOOR")
+
+        # # Add the collision handler to the space
+        handler = space.add_collision_handler(character.head.shape.collision_type, ground_shape.collision_type)
+        handler.begin = on_collision
+
         
         rl.draw_text("Distance: " + str(round(positions.left_foot_position[0], 0) / 1000.0) + "m", 20, 0, 50, rl.Color(153, 204, 255, 255))
         rl.draw_text("Time: " + str(round(rl.get_time(), 2)), 20, 50, 50, rl.Color(153, 204, 255, 255))
