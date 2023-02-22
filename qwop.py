@@ -3,6 +3,7 @@ import pymunk as pm
 from math import degrees, radians
 import sys
 import os
+import numpy as np
 
 # Takes in a width and height (in pixels) of a rectangle and then returns
 # a list of 4 vertices which describe the four corners
@@ -306,8 +307,75 @@ class Position:
         self.left_calf_position = left_calf_position
         self.left_foot_position = left_foot_position
     
-    def get_position(self):
-        return self
+    def get_position_all(self):
+        return (self.torso_position,
+                self.head_position,
+                self.right_forearm_position,
+                self.right_bicepts_position,
+                self.left_forearm_position,
+                self.left_bicepts_position,
+                self.right_leg_position,
+                self.right_calf_position,
+                self.right_foot_position,
+                self.left_leg_position, 
+                self.left_calf_position,
+                self.left_foot_position)
+
+
+class NeuralNetwork:
+    
+    def __init__(self, input_nodes=12, hidden_nodes=6, output_nodes=4):
+        self.input_nodes = input_nodes
+        self.hidden_nodes = hidden_nodes
+        self.output_nodes = output_nodes
+        
+        # Initialize weights and biases for input to hidden layer
+        self.weights_ih = np.random.randn(self.hidden_nodes, self.input_nodes)
+        self.bias_ih = np.random.randn(self.hidden_nodes, 1)
+        
+        # Initialize weights and biases for hidden to output layer
+        self.weights_ho = np.random.randn(self.output_nodes, self.hidden_nodes)
+        self.bias_ho = np.random.randn(self.output_nodes, 1)
+        
+    def sigmoid(self, x):
+        return 1 / (1 + np.exp(-x))
+    
+    def feedforward(self, inputs):
+        # Calculate outputs for hidden layer
+        hidden_outputs = self.sigmoid(np.dot(self.weights_ih, inputs) + self.bias_ih)
+        
+        # Calculate outputs for output layer
+        output = self.sigmoid(np.dot(self.weights_ho, hidden_outputs) + self.bias_ho)
+        
+        return output
+    
+    def train(self, inputs, targets, learning_rate=0.1):
+        # Feedforward pass
+        hidden_outputs = self.sigmoid(np.dot(self.weights_ih, inputs) + self.bias_ih)
+        output = self.sigmoid(np.dot(self.weights_ho, hidden_outputs) + self.bias_ho)
+        
+        # Calculate error and deltas for output layer
+        error = targets - output
+        output_delta = error * output * (1 - output)
+        
+        # Calculate error and deltas for hidden layer
+        hidden_error = np.dot(self.weights_ho.T, output_delta)
+        hidden_delta = hidden_error * hidden_outputs * (1 - hidden_outputs)
+        
+        # Update weights and biases for hidden to output layer
+        self.weights_ho += learning_rate * np.dot(output_delta, hidden_outputs.T)
+        self.bias_ho += learning_rate * output_delta
+        
+        # Update weights and biases for input to hidden layer
+        self.weights_ih += learning_rate * np.dot(hidden_delta, inputs.T)
+        self.bias_ih += learning_rate * hidden_delta
+        
+    def predict(self, inputs):
+        return self.feedforward(inputs)
+
+    
+
+
 
 def main():
     space = pm.Space()
@@ -378,13 +446,28 @@ def main():
                             character.left_calf.limb.body.position,
                             character.left_foot.body.position)
 
+        neural_network = NeuralNetwork()
+        output = neural_network.feedforward(positions.get_position_all())
+
+        value = []
         
-        #List of Actions would be:
-        # character.move_legs_q(), 
-        # character.move_legs_w(), 
-        # character.hold_legs(), 
-        # character.move_knees_o(), 
-        # character.move_knees_p()
+        for i in range(len(output)):
+            value.append(neural_network.sigmoid(output[i][0] + output[i][1]))
+        
+        if(value[0] > .3):
+            character.move_legs_q()
+
+        if(value[1] > .8):
+            character.move_legs_w()
+
+        if(value[2] > .5):
+            character.move_knees_o()
+
+        if(value[3] > .7):
+            character.move_knees_p()
+        else:
+            character.hold_legs()
+
 
         def on_collision(arbiter, space, data):
             # Get the shapes that collided
@@ -407,11 +490,11 @@ def main():
         # # Add the collision handler to the space
         handler = space.add_collision_handler(character.head.shape.collision_type, ground_shape.collision_type)
         handler.begin = on_collision
-
+        
         
         rl.draw_text("Distance: " + str(round(positions.left_foot_position[0], 0) / 1000.0) + "m", 20, 0, 50, rl.Color(153, 204, 255, 255))
         rl.draw_text("Time: " + str(round(rl.get_time(), 2)), 20, 50, 50, rl.Color(153, 204, 255, 255))
-
+        #break
         rl.end_drawing()
     rl.close_window()
 
