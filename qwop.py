@@ -330,45 +330,53 @@ class NeuralNetwork:
         self.output_nodes = output_nodes
         
         # Initialize weights and biases for input to hidden layer
+        # Creates 6 X 12 matrix, these are the connections between input nodes and hidden nodes
         self.weights_ih = np.random.randn(self.hidden_nodes, self.input_nodes)
+        # Creates 6 X 1 matrix for bias
         self.bias_ih = np.random.randn(self.hidden_nodes, 1)
         
         # Initialize weights and biases for hidden to output layer
+        # Creates 4 X 6 matrix, these are the connections between hidden nodes and output nodes
         self.weights_ho = np.random.randn(self.output_nodes, self.hidden_nodes)
+        # Creates 6 X 1 matrix for bias
         self.bias_ho = np.random.randn(self.output_nodes, 1)
         
     def sigmoid(self, x):
         return 1 / (1 + np.exp(-x))
     
     def feedforward(self, inputs):
-        # Calculate outputs for hidden layer
+        # Calculate outputs for hidden layer, by multiplying (weights of intput layer to hidden layer) by (inputs) and add some bias
+        # [6 X 12] * [12 X 2]
         hidden_outputs = self.sigmoid(np.dot(self.weights_ih, inputs) + self.bias_ih)
         
-        # Calculate outputs for output layer
+        # Calculate outputs for output layer, by multiplying (weights of hidden layer output layer) by (hidden layer outputs) and add some bias
         output = self.sigmoid(np.dot(self.weights_ho, hidden_outputs) + self.bias_ho)
         
         return output
     
-    def train(self, inputs, targets, learning_rate=0.1):
-        # Feedforward pass
-        hidden_outputs = self.sigmoid(np.dot(self.weights_ih, inputs) + self.bias_ih)
-        output = self.sigmoid(np.dot(self.weights_ho, hidden_outputs) + self.bias_ho)
+    #def train(self, inputs, targets, learning_rate=0.1):
+        #THE PROBLEM IS HERE
+
+
+        # # Feedforward pass
+        # hidden_outputs = self.sigmoid(np.dot(self.weights_ih, inputs) + self.bias_ih)
+        # output = self.sigmoid(np.dot(self.weights_ho, hidden_outputs) + self.bias_ho)
         
-        # Calculate error and deltas for output layer
-        error = targets - output
-        output_delta = error * output * (1 - output)
+        # # Calculate error and deltas for output layer
+        # error = targets - output
+        # output_delta = error * output * (1 - output)
         
-        # Calculate error and deltas for hidden layer
-        hidden_error = np.dot(self.weights_ho.T, output_delta)
-        hidden_delta = hidden_error * hidden_outputs * (1 - hidden_outputs)
+        # # Calculate error and deltas for hidden layer
+        # hidden_error = np.dot(self.weights_ho.T, output_delta)
+        # hidden_delta = hidden_error * hidden_outputs * (1 - hidden_outputs)
         
-        # Update weights and biases for hidden to output layer
-        self.weights_ho += learning_rate * np.dot(output_delta, hidden_outputs.T)
-        self.bias_ho += learning_rate * output_delta
+        # # Update weights and biases for hidden to output layer
+        # self.weights_ho += learning_rate * np.dot(output_delta, hidden_outputs.T)
+        # self.bias_ho += learning_rate * output_delta
         
-        # Update weights and biases for input to hidden layer
-        self.weights_ih += learning_rate * np.dot(hidden_delta, inputs.T)
-        self.bias_ih += learning_rate * hidden_delta
+        # # Update weights and biases for input to hidden layer
+        # self.weights_ih += learning_rate * np.dot(hidden_delta, inputs.T)
+        # self.bias_ih += learning_rate * hidden_delta
         
     def predict(self, inputs):
         return self.feedforward(inputs)
@@ -448,6 +456,7 @@ def main():
 
         neural_network = NeuralNetwork()
         output = neural_network.feedforward(positions.get_position_all())
+        #neural_network.train(positions.get_position_all(), [([1,1]),([1,1]),([1,1]),([1,1])])
 
         value = []
         
@@ -488,8 +497,8 @@ def main():
                 print("UPPER-BODY TOUCHED THE FLOOR")
 
         # # Add the collision handler to the space
-        handler = space.add_collision_handler(character.head.shape.collision_type, ground_shape.collision_type)
-        handler.begin = on_collision
+        # handler = space.add_collision_handler(character.head.shape.collision_type, ground_shape.collision_type)
+        # handler.begin = on_collision
         
         
         rl.draw_text("Distance: " + str(round(positions.left_foot_position[0], 0) / 1000.0) + "m", 20, 0, 50, rl.Color(153, 204, 255, 255))
