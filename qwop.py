@@ -335,26 +335,24 @@ class NeuralNetwork:
         self.hidden_nodes = hidden_nodes
         self.output_nodes = output_nodes
         
-        # Initialize weights and biases for input to hidden layer
-        self.weights_ih: list[float] = np.random.randn(self.hidden_nodes, self.input_nodes)
-        self.bias_ih: list[float] = np.random.randn(self.hidden_nodes, 1)
+        # Initialize weights and biases for input to hidden layer (contains 12 lists, each list coresponds to each hidden neuron, which contains all the weights correspondng to the neuron)
+        self.weights_ih: list[list[float]] = np.random.randn(self.hidden_nodes, self.input_nodes)
+        #self.bias_ih: list[float] = np.random.randn(self.hidden_nodes, 1)
         
-        # Initialize weights and biases for hidden to output laye
-        self.weights_ho = np.random.randn(self.output_nodes, self.hidden_nodes)
-        self.bias_ho = np.random.randn(self.output_nodes, 1)
+        # Initialize weights and biases for hidden to output layer (contains 4 lists, each list coresponds to each output neuron, which contains all the weights correspondng to the neuron)
+        self.weights_ho: list[list[float]] = np.random.randn(self.output_nodes, self.hidden_nodes)
+        #self.bias_ho = np.random.randn(self.output_nodes, 1)
         
     def sigmoid(self, x):
         return 1 / (1 + np.exp(-x))
     
     def feedforward(self, inputs):
-        # Calculate outputs for hidden layer, by multiplying (weights of intput layer to hidden layer) by (inputs) and add some bias
-        # If `a` is an N-D array and `b` is a 1-D array, it is a sum product over the last axis of `a` and `b`.
+        # Calculate outputs for hidden layer, by using dot product [the weights to each specific hidden layer neuron] * [the input neurons], each neuron corresponds to each weight
+        hidden_outputs = [self.sigmoid(np.dot(i, inputs)) for i in self.weights_ih]
         
-        hidden_outputs = self.sigmoid(sum(np.matmul(self.weights_ih, inputs) + self.bias_ih))
-        
+
         # Calculate outputs for output layer, by multiplying (weights of hidden layer output layer) by (hidden layer outputs) and add some bias
-        
-        output = self.sigmoid(sum(np.matmul(self.weights_ho, hidden_outputs) + self.bias_ho))
+        output = [self.sigmoid(np.dot(i, hidden_outputs)) for i in self.weights_ho]
         
         return output
     
@@ -438,6 +436,7 @@ def main():
         
         output = neural_network.feedforward(inputs)
         
+
 
 
         def on_collision(arbiter, space, data):
