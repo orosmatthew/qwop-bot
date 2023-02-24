@@ -320,25 +320,27 @@ class Position:
                 self.left_leg_position, 
                 self.left_calf_position,
                 self.left_foot_position)
+    
+    def get_position_all_x(self):
+        return [item[0] for item in self.get_position_all()]
+    
+    def get_position_all_y(self):
+        return [item[1] for item in self.get_position_all()]
 
 
 class NeuralNetwork:
     
-    def __init__(self, input_nodes=12, hidden_nodes=6, output_nodes=4):
+    def __init__(self, input_nodes=24, hidden_nodes=12, output_nodes=4):
         self.input_nodes = input_nodes
         self.hidden_nodes = hidden_nodes
         self.output_nodes = output_nodes
         
         # Initialize weights and biases for input to hidden layer
-        # Creates 6 X 12 matrix, these are the connections between input nodes and hidden nodes
-        self.weights_ih = np.random.randn(self.hidden_nodes, self.input_nodes)
-        # Creates 6 X 1 matrix for bias
-        self.bias_ih = np.random.randn(self.hidden_nodes, 1)
+        self.weights_ih: list[float] = np.random.randn(self.hidden_nodes, self.input_nodes)
+        self.bias_ih: list[float] = np.random.randn(self.hidden_nodes, 1)
         
-        # Initialize weights and biases for hidden to output layer
-        # Creates 4 X 6 matrix, these are the connections between hidden nodes and output nodes
+        # Initialize weights and biases for hidden to output laye
         self.weights_ho = np.random.randn(self.output_nodes, self.hidden_nodes)
-        # Creates 6 X 1 matrix for bias
         self.bias_ho = np.random.randn(self.output_nodes, 1)
         
     def sigmoid(self, x):
@@ -346,40 +348,18 @@ class NeuralNetwork:
     
     def feedforward(self, inputs):
         # Calculate outputs for hidden layer, by multiplying (weights of intput layer to hidden layer) by (inputs) and add some bias
-        # [6 X 12] * [12 X 2]
-        hidden_outputs = self.sigmoid(np.dot(self.weights_ih, inputs) + self.bias_ih)
+        # If `a` is an N-D array and `b` is a 1-D array, it is a sum product over the last axis of `a` and `b`.
+        ##PROBLEM
+        hidden_outputs = self.sigmoid(np.matmul(self.weights_ih, inputs) + self.bias_ih)
         
         # Calculate outputs for output layer, by multiplying (weights of hidden layer output layer) by (hidden layer outputs) and add some bias
-        output = self.sigmoid(np.dot(self.weights_ho, hidden_outputs) + self.bias_ho)
-        
+        ##SAME PROBLEM
+        output = self.sigmoid(np.matmul(self.weights_ho, hidden_outputs) + self.bias_ho)
+        print()
         return output
     
-    #def train(self, inputs, targets, learning_rate=0.1):
-        #THE PROBLEM IS HERE
-
-
-        # # Feedforward pass
-        # hidden_outputs = self.sigmoid(np.dot(self.weights_ih, inputs) + self.bias_ih)
-        # output = self.sigmoid(np.dot(self.weights_ho, hidden_outputs) + self.bias_ho)
         
-        # # Calculate error and deltas for output layer
-        # error = targets - output
-        # output_delta = error * output * (1 - output)
-        
-        # # Calculate error and deltas for hidden layer
-        # hidden_error = np.dot(self.weights_ho.T, output_delta)
-        # hidden_delta = hidden_error * hidden_outputs * (1 - hidden_outputs)
-        
-        # # Update weights and biases for hidden to output layer
-        # self.weights_ho += learning_rate * np.dot(output_delta, hidden_outputs.T)
-        # self.bias_ho += learning_rate * output_delta
-        
-        # # Update weights and biases for input to hidden layer
-        # self.weights_ih += learning_rate * np.dot(hidden_delta, inputs.T)
-        # self.bias_ih += learning_rate * hidden_delta
-        
-    def predict(self, inputs):
-        return self.feedforward(inputs)
+    
 
     
 
@@ -455,27 +435,14 @@ def main():
                             character.left_foot.body.position)
 
         neural_network = NeuralNetwork()
-        output = neural_network.feedforward(positions.get_position_all())
-        #neural_network.train(positions.get_position_all(), [([1,1]),([1,1]),([1,1]),([1,1])])
-
-        value = []
+        inputs = positions.get_position_all_x() + positions.get_position_all_y()
         
-        for i in range(len(output)):
-            value.append(neural_network.sigmoid(output[i][0] + output[i][1]))
+        output = neural_network.feedforward(inputs)
         
-        if(value[0] > .3):
-            character.move_legs_q()
-
-        if(value[1] > .8):
-            character.move_legs_w()
-
-        if(value[2] > .5):
-            character.move_knees_o()
-
-        if(value[3] > .7):
-            character.move_knees_p()
-        else:
-            character.hold_legs()
+        print(output)
+        
+        
+        
 
 
         def on_collision(arbiter, space, data):
@@ -503,7 +470,7 @@ def main():
         
         rl.draw_text("Distance: " + str(round(positions.left_foot_position[0], 0) / 1000.0) + "m", 20, 0, 50, rl.Color(153, 204, 255, 255))
         rl.draw_text("Time: " + str(round(rl.get_time(), 2)), 20, 50, 50, rl.Color(153, 204, 255, 255))
-        #break
+        break
         rl.end_drawing()
     rl.close_window()
 
