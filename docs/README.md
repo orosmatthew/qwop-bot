@@ -1,1 +1,3 @@
-#Pre-Proposal
+# Pre-Proposal
+
+We have decided to recreate the game QWOP and create an AI that can sufficiently play the game. In QWOP, a player attempts to control a track runner’s thighs and legs using Q and W and calves using O and P to make them run without falling over.  Our goal is to create an AI that can play this game and improve at it to eventually be able to travel 100m. We intend to use a combination of approaches that includes a genetic algorithm, a neural network, and reinforcement learning to train the AI to improve its gameplay. Our plan is to develop the AI using milestones such as crawling, standing, walking, etc. We intend to further expand this plan with more specific algorithms, milestones, etc.  
