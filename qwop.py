@@ -349,19 +349,18 @@ class NeuralNetwork:
     def feedforward(self, inputs):
         # Calculate outputs for hidden layer, by multiplying (weights of intput layer to hidden layer) by (inputs) and add some bias
         # If `a` is an N-D array and `b` is a 1-D array, it is a sum product over the last axis of `a` and `b`.
-        ##PROBLEM
-        hidden_outputs = self.sigmoid(np.matmul(self.weights_ih, inputs) + self.bias_ih)
+        
+        hidden_outputs = self.sigmoid(sum(np.matmul(self.weights_ih, inputs) + self.bias_ih))
         
         # Calculate outputs for output layer, by multiplying (weights of hidden layer output layer) by (hidden layer outputs) and add some bias
-        ##SAME PROBLEM
-        output = self.sigmoid(np.matmul(self.weights_ho, hidden_outputs) + self.bias_ho)
-        print()
+        
+        output = self.sigmoid(sum(np.matmul(self.weights_ho, hidden_outputs) + self.bias_ho))
+        
         return output
     
-        
-    
 
-    
+
+
 
 
 
@@ -439,10 +438,6 @@ def main():
         
         output = neural_network.feedforward(inputs)
         
-        print(output)
-        
-        
-        
 
 
         def on_collision(arbiter, space, data):
@@ -457,10 +452,6 @@ def main():
 
             # Check if the colliding shapes belong to the head and floor
             if (shape_1 in list_of_shapes and shape_2 == ground_shape) or (shape_1 == ground_shape and shape_2 in list_of_shapes):
-                # Restart the application
-                # python_path = sys.executable
-                # script_path = os.path.abspath(__file__)
-                # os.execl(python_path, python_path, script_path)
                 print("UPPER-BODY TOUCHED THE FLOOR")
 
         # # Add the collision handler to the space
@@ -470,7 +461,7 @@ def main():
         
         rl.draw_text("Distance: " + str(round(positions.left_foot_position[0], 0) / 1000.0) + "m", 20, 0, 50, rl.Color(153, 204, 255, 255))
         rl.draw_text("Time: " + str(round(rl.get_time(), 2)), 20, 50, 50, rl.Color(153, 204, 255, 255))
-        break
+        #break
         rl.end_drawing()
     rl.close_window()
 
