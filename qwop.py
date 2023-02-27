@@ -1,7 +1,9 @@
 import pyray as rl
 import pymunk as pm
 from math import degrees, radians
-
+import sys
+import os
+import numpy as np
 
 # Takes in a width and height (in pixels) of a rectangle and then returns
 # a list of 4 vertices which describe the four corners
@@ -211,6 +213,9 @@ class Character:
         physics_space.add(self.body_left_leg_limit)
         physics_space.add(self.body_right_leg_limit)
 
+        
+
+            
         ##################
         # self.hip = pm.PivotJoint(self.left_leg.limb.body, self.right_leg.limb.body, (0, 50), (0, 50))
         # physics_space.add(self.hip)
@@ -274,6 +279,88 @@ class Character:
         self.left_calf.relax_muscle()
         self.right_calf.relax_muscle()
 
+class Position:
+    def __init__(self, torso_position: tuple,
+                        head_position: tuple,
+                        right_forearm_position: tuple,
+                        right_bicepts_position: tuple,
+                        left_forearm_position: tuple,
+                        left_bicepts_position: tuple,
+                        right_leg_position: tuple,
+                        right_calf_position: tuple,
+                        right_foot_position: tuple,
+                        left_leg_position: tuple,
+                        left_calf_position: tuple,
+                        left_foot_position: tuple,
+                        ):
+
+        self.torso_position = torso_position 
+        self.head_position = head_position
+        self.right_forearm_position = right_forearm_position
+        self.right_bicepts_position = right_bicepts_position
+        self.left_forearm_position = left_forearm_position
+        self.left_bicepts_position = left_bicepts_position
+        self.right_leg_position = right_leg_position
+        self.right_calf_position = right_calf_position
+        self.right_foot_position = right_foot_position
+        self.left_leg_position = left_leg_position
+        self.left_calf_position = left_calf_position
+        self.left_foot_position = left_foot_position
+    
+    def get_position_all(self):
+        return (self.torso_position,
+                self.head_position,
+                self.right_forearm_position,
+                self.right_bicepts_position,
+                self.left_forearm_position,
+                self.left_bicepts_position,
+                self.right_leg_position,
+                self.right_calf_position,
+                self.right_foot_position,
+                self.left_leg_position, 
+                self.left_calf_position,
+                self.left_foot_position)
+    
+    def get_position_all_x(self):
+        return [item[0] for item in self.get_position_all()]
+    
+    def get_position_all_y(self):
+        return [item[1] for item in self.get_position_all()]
+
+
+class NeuralNetwork:
+    
+    def __init__(self, input_nodes=24, hidden_nodes=12, output_nodes=4):
+        self.input_nodes = input_nodes
+        self.hidden_nodes = hidden_nodes
+        self.output_nodes = output_nodes
+        
+        # Initialize weights and biases for input to hidden layer (contains 12 lists, each list coresponds to each hidden neuron, which contains all the weights correspondng to the neuron)
+        self.weights_ih: list[list[float]] = np.random.randn(self.hidden_nodes, self.input_nodes)
+        #self.bias_ih: list[float] = np.random.randn(self.hidden_nodes, 1)
+        
+        # Initialize weights and biases for hidden to output layer (contains 4 lists, each list coresponds to each output neuron, which contains all the weights correspondng to the neuron)
+        self.weights_ho: list[list[float]] = np.random.randn(self.output_nodes, self.hidden_nodes)
+        #self.bias_ho = np.random.randn(self.output_nodes, 1)
+        
+    def sigmoid(self, x):
+        return 1 / (1 + np.exp(-x))
+    
+    def feedforward(self, inputs):
+        # Calculate outputs for hidden layer, by using dot product [the weights to each specific hidden layer neuron] * [the input neurons], each neuron corresponds to each weight
+        hidden_outputs = [self.sigmoid(np.dot(i, inputs)) for i in self.weights_ih]
+        
+
+        # Calculate outputs for output layer, by multiplying (weights of hidden layer output layer) by (hidden layer outputs) and add some bias
+        output = [self.sigmoid(np.dot(i, hidden_outputs)) for i in self.weights_ho]
+        
+        return output
+    
+
+
+
+
+
 
 def main():
     space = pm.Space()
@@ -291,6 +378,7 @@ def main():
     ]
     ground_shape = pm.Poly(ground_body, ground_poly)
     ground_shape.friction = 0.8
+    ground_shape.collision_type
     space.add(ground_body, ground_shape)
 
     rl.set_target_fps(60)
@@ -330,10 +418,49 @@ def main():
 
         rl.end_mode_2d()
 
-        position = character.torso.body.position
-        rl.draw_text("Distance: " + str(round(position[0], 0) / 1000.0) + "m", 20, 0, 50, rl.Color(153, 204, 255, 255))
-        rl.draw_text("Time: " + str(round(rl.get_time(), 2)), 20, 50, 50, rl.Color(153, 204, 255, 255))
+        positions = Position(character.torso.body.position, 
+                            character.head.body.position, 
+                            character.right_forearm.body.position,
+                            character.right_biceps.limb.body.position,
+                            character.left_forearm.body.position,
+                            character.left_biceps.limb.body.position,
+                            character.right_leg.limb.body.position,
+                            character.right_calf.limb.body.position,
+                            character.right_foot.body.position,
+                            character.left_leg.limb.body.position,
+                            character.left_calf.limb.body.position,
+                            character.left_foot.body.position)
 
+        neural_network = NeuralNetwork()
+        inputs = positions.get_position_all_x() + positions.get_position_all_y()
+        
+        output = neural_network.feedforward(inputs)
+        
+
+
+
+        def on_collision(arbiter, space, data):
+            # Get the shapes that collided
+            shape_1, shape_2 = arbiter.shapes
+            list_of_shapes = [character.head.shape, 
+                                character.torso.shape, 
+                                character.right_biceps.limb.shape, 
+                                character.right_forearm.shape, 
+                                character.left_biceps.limb.shape, 
+                                character.left_forearm.shape]
+
+            # Check if the colliding shapes belong to the head and floor
+            if (shape_1 in list_of_shapes and shape_2 == ground_shape) or (shape_1 == ground_shape and shape_2 in list_of_shapes):
+                print("UPPER-BODY TOUCHED THE FLOOR")
+
+        # # Add the collision handler to the space
+        # handler = space.add_collision_handler(character.head.shape.collision_type, ground_shape.collision_type)
+        # handler.begin = on_collision
+        
+        
+        rl.draw_text("Distance: " + str(round(positions.left_foot_position[0], 0) / 1000.0) + "m", 20, 0, 50, rl.Color(153, 204, 255, 255))
+        rl.draw_text("Time: " + str(round(rl.get_time(), 2)), 20, 50, 50, rl.Color(153, 204, 255, 255))
+        #break
         rl.end_drawing()
     rl.close_window()
 
