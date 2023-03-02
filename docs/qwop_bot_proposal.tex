@@ -95,7 +95,7 @@
 }
 \affiliations{
     %Afiliations
-    \textsuperscript{\rm 1}Association for the Advancement of Artificial Intelligence\\
+   
     %If you have multiple authors and multiple affiliations
     % use superscripts in text and roman font to identify them.
     %For example,
@@ -106,10 +106,9 @@
     % Hans Guesgen, \textsuperscript{\rm 5}.
     % Note that the comma should be placed BEFORE the superscript for optimum readability
 
-    2275 East Bayshore Road, Suite 160\\
-    Palo Alto, California 94303\\
+    275 Eastland Road\\
+    Berea, Ohio 44017\\
     % email address must be in roman text type, not monospace or sans serif
-    publications21@aaai.org
 
     % See more examples next
 }
@@ -152,9 +151,20 @@
 We have decided to recreate the game QWOP and create an AI that can sufficiently play the game. In QWOP, a player attempts to control a track runner’s thighs and legs using Q and W and calves using O and P to make them run without falling over. Our goal is to create an AI that can play this game and improve at it to eventually be able to travel 100m. We intend to use a combination of approaches that includes a genetic algorithm, a neural network, and reinforcement learning to train the AI to improve its gameplay. Our plan is to develop the AI using milestones such as crawling, standing, walking, etc. We intend to further expand this plan with more specific algorithms, milestones, etc.
 \end{abstract}
 
-\noindent The core issue that this program intends to solve is creating a biomechanical model of locomotion. This issue is bioinspired because most landborne animals must learn to balance and walk on their own. This problem is explored in many fields including engineering, medicine, and robotics. Our goal is to successfully develop a program that can learn to maneuver the character without falling over. We believe that we will be successful because we have planned out a system of a neural network and genetic algorithm/reinforcement learning to help accomplish our goal. Our neural network has been coded to fully perceive the character's body and movements relative to the environment. This will allow us to determine if the character is balancing, and measure its movement. 
+\noindent The core issue that this program intends to solve is creating a biomechanical model of locomotion. This issue is bioinspired because most land-borne animals must learn to balance and walk on their own. This problem is explored in many fields including engineering, medicine, and robotics. Our goal is to successfully develop a program that can learn to maneuver the character without falling over.
 
-Our [genetic algorithm / reinforcement learning] approach will allow our program to learn the best approach to balancing and walking.
+Our approach to the problem is to develop a neural network and use a genetic algorithm and reinforcement learning with it.
+
+The neural network will be given a set of inputs, which involves the positions of all the limbs in the environment. The goal is to create a deep enough neural network with enough layers, so we can train it using a large dataset of inputs and supervised learning.
+
+To optimize the weights of the neural network we will use a genetic algorithm. The approach that we will use is population-based. In such an approach, we generate multiple agents with various neural networks, which have randomly assigned weights for the first time, and as they evolve the weights will change based on the successful performances of the neural networks.
+
+Finally, to further improve the agent's performance we will use reinforcement learning. For this portion of the development, we will develop a utility function that would indicate how well the agent performs to make further updates to the neural network's weights based on the rewards received by the agent during gameplay. The simplest version of the utility function that we have in mind is to give rewards if the figure moves forward and penalize it for falling or moving backward. We will potentially use a replay buffer to store the outputs of the utility function (agent's experiences) for further improvements in the stability of the learning process.
+
+We believe that we will be successful because we have planned out a system of a neural network and genetic algorithm/reinforcement learning to help accomplish our goal. Our neural network has been coded to fully perceive the character's body and movements relative to the environment. This will allow us to determine if the character is balancing, and measure its movement. We already have a functional draft of a neural network that can be used and upon which we can expand. We believe that Our [genetic algorithm/reinforcement learning] approach will allow our program to learn the best approach to balancing and walking. Due to the genetic algorithm, we would be able to assign starting weights that would have some meaning due to trial and error. Due to reinforcement learning the weights and the actions would be polished (further improved). We believe that such a combination will give us better results compared to the ones that would be given if we were only to use one of the mentioned above algorithms.
+
+
+
 
 
 
