@@ -1,4 +1,3 @@
-\def\year{2021}
 %
 %Filename: aaai21-mod.sty
 %
@@ -31,16 +30,6 @@
 % We're never going to need a table of contents, so just flush it to
 % save space --- suggested by drstrip@sandia-2
 \def\addcontentsline#1#2#3{}
-% gf: PRINT COPYRIGHT NOTICE
-\def\copyright@year{\number\year}
-\def\copyright@text{Copyright \copyright\space \copyright@year,
-Association for the Advancement of Artificial Intelligence (www.aaai.org).
-All rights reserved.}
-\def\copyright@on{T}
-%\def\nocopyright{\gdef\copyright@on{}} % Copyright notice is required for AAAI-21 papers.
-\def\copyrighttext#1{\gdef\copyright@on{T}\gdef\copyright@text{#1}}
-\def\copyrightyear#1{\gdef\copyright@on{T}\gdef\copyright@year{#1}}
-% gf: End changes for copyright notice (used in \maketitle, below)
 % Title stuff, taken from deproc.
 \def\maketitle{\par
 \begingroup % to make the footnote style local to the title
@@ -49,8 +38,6 @@ All rights reserved.}
 %\def\@makefnmark{\hbox to 0pt{$^{\@thefnmark}$\hss}}
 \twocolumn[\@maketitle] \@thanks
 \endgroup
-% gf: Insert copyright slug unless turned off
-\if T\copyright@on\insert\footins{\noindent\footnotesize\copyright@text}\fi
 % gf: And now back to your regular programming
 \setcounter{footnote}{0}
 \let\maketitle\relax \let\@maketitle\relax
