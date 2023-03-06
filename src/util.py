@@ -1,4 +1,7 @@
+import typing
+
 import numpy as np
+import pymunk as pm
 
 
 # Takes in a width and height (in pixels) of a rectangle and then returns
@@ -15,3 +18,7 @@ def gen_rect_verts(width: float, height: float) -> list[tuple[float, float]]:
 def sigmoid(x):
     x = np.clip(x, -500, 500)  # This prevents overflow from np.exp()
     return 1 / (1 + np.exp(-x))
+
+
+def vec2d_to_arr(vec: pm.Vec2d) -> list[float]:
+    return [vec.x, vec.y]
