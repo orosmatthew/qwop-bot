@@ -5,6 +5,7 @@ from character import Character
 from neural_network import NeuralNetwork
 from util import vec2d_to_arr
 import json
+import random
 
 
 def character_data_list(character: Character) -> list[float]:
@@ -45,6 +46,8 @@ class CharacterSimulation:
 
         self.fitness = 0.0
 
+        self.color = rl.color_from_hsv(random.uniform(0, 360), 0.7, 0.9)
+
     def step(self, time_step: float) -> None:
         self.space.step(time_step)
         inputs = np.asarray(character_data_list(self.character))
@@ -60,11 +63,22 @@ class CharacterSimulation:
 
         fitness = self.character_position().x
 
+    def output_data(self) -> dict:
+        data = {
+            "color": (self.color.r, self.color.g, self.color.b, self.color.a),
+            "network": self.neural_network.output_data()
+        }
+        return data
+
+    def load_data(self, data: dict) -> None:
+        self.color = rl.Color(data["color"][0], data["color"][1], data["color"][2], data["color"][3])
+        self.neural_network.load_data(data["network"])
+
     def character_position(self) -> rl.Vector2:
         return rl.Vector2(self.character.torso.body.position.x, -self.character.torso.body.position.y + 100)
 
     def draw_character(self) -> None:
-        self.character.draw()
+        self.character.draw(self.color)
 
     def character_move_legs_q(self) -> None:
         self.character.move_legs_q()
@@ -108,7 +122,7 @@ def main():
         if rl.is_key_pressed(rl.KeyboardKey.KEY_S):
             data = []
             for sim in sim_list:
-                data.append(sim.neural_network.output_data())
+                data.append(sim.output_data())
             with open("network.json", "w") as file:
                 json.dump(data, file)
 
@@ -119,7 +133,7 @@ def main():
             sim_list = [CharacterSimulation(ground_position, ground_poly) for _ in range(len(data))]
             sim_time = 0.0
             for i, sim in enumerate(sim_list):
-                sim.neural_network.load_data(data[i])
+                sim.load_data(data[i])
 
         if rl.is_key_pressed(rl.KeyboardKey.KEY_R):
             sim_list.clear()
