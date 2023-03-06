@@ -42,8 +42,8 @@ class CharacterSimulation:
 
         self.outputs = np.asarray(character_data_list(self.character))
 
-    def step(self) -> None:
-        self.space.step(1.0 / 60.0)
+    def step(self, time_step: float) -> None:
+        self.space.step(time_step)
         inputs = np.asarray(character_data_list(self.character))
         self.outputs = self.neural_network.feedforward(inputs)
         if self.outputs[0] >= 0.5:
@@ -96,13 +96,18 @@ def main():
     ground_shape.friction = 0.8
     ground_shape.collision_type = pm.Body.STATIC
 
+    sim_time: float = 0.0
+    time_step = 1.0 / 60.0
+
     while not rl.window_should_close():
         if rl.is_key_pressed(rl.KeyboardKey.KEY_R):
             sim_list.clear()
             sim_list = [CharacterSimulation(ground_position, ground_poly) for _ in range(10)]
+            sim_time = 0.0
 
         for sim in sim_list:
-            sim.step()
+            sim.step(time_step)
+        sim_time += time_step
 
         rl.begin_drawing()
         rl.begin_mode_2d(camera)
@@ -150,7 +155,7 @@ def main():
 
         rl.draw_text("Max Distance: " + str(round(max_x, 0) / 1000.0) + "m", 20, 0, 50,
                      rl.Color(153, 204, 255, 255))
-        rl.draw_text("Time: " + str(round(rl.get_time(), 2)), 20, 50, 50, rl.Color(153, 204, 255, 255))
+        rl.draw_text("Sim Time: " + str(round(sim_time, 2)), 20, 50, 50, rl.Color(153, 204, 255, 255))
 
         rl.end_drawing()
     rl.close_window()
