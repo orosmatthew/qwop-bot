@@ -324,29 +324,35 @@ class Position:
         return [item[1] for item in self.get_position_all()]
 
 
-# TODO: Overflow happens here at some point
 def sigmoid(x):
+    x = np.clip(x, -500, 500)  # This prevents overflow from np.exp()
     return 1 / (1 + np.exp(-x))
 
 
 class NeuralNetwork:
 
-    def __init__(self, input_nodes=24, hidden_nodes=12, output_nodes=4):
-        self.input_nodes = input_nodes
-        self.hidden_nodes = hidden_nodes
-        self.output_nodes = output_nodes
+    def __init__(self, input_nodes: int = 24, hidden_nodes: int = 12, output_nodes: int = 4):
+        self.input_nodes: int = input_nodes
+        self.hidden_nodes: int = hidden_nodes
+        self.output_nodes: int = output_nodes
 
-        # Initialize weights and biases for input to hidden layer (contains 12 lists, each list corresponds to each
-        # hidden neuron, which contains all the weights corresponding to the neuron)
-        self.weights_ih: list[list[float]] = np.random.randn(self.hidden_nodes, self.input_nodes)
-        # self.bias_ih: list[float] = np.random.randn(self.hidden_nodes, 1)
+        # Initialize weights from input layer to hidden layer
+        # [
+        #   [in1 -> h1, in2 -> h1, in3 -> h1, ...],
+        #   [in1 -> h2, in2 -> h2, in3 -> h2, ...],
+        #   ...
+        # ]
+        self.weights_ih: np.ndarray = np.random.randn(self.hidden_nodes, self.input_nodes)
 
-        # Initialize weights and biases for hidden to output layer (contains 4 lists, each list corresponds to each
-        # output neuron, which contains all the weights corresponding to the neuron)
-        self.weights_ho: list[list[float]] = np.random.randn(self.output_nodes, self.hidden_nodes)
-        # self.bias_ho = np.random.randn(self.output_nodes, 1)
+        # Initialize weights from hidden layer to output layer
+        # [
+        #   [h1 -> out1, h2 -> out1, h3 -> out1, ...],
+        #   [h1 -> out2, h2 -> out2, h3 -> out2, ...],
+        #   ...
+        # ]
+        self.weights_ho: np.ndarray = np.random.randn(self.output_nodes, self.hidden_nodes)
 
-    def feedforward(self, inputs):
+    def feedforward(self, inputs: np.ndarray):
         # Calculate outputs for hidden layer, by using dot product
         # [the weights to each specific hidden layer neuron] * [the input neurons],
         # each neuron corresponds to each weight
@@ -382,6 +388,8 @@ def main():
 
     camera = rl.Camera2D(rl.Vector2(1280 / 2, 720 / 2), rl.Vector2(0, 0), 0.0, 1.0)
     rl.set_config_flags(rl.ConfigFlags.FLAG_MSAA_4X_HINT)
+
+    neural_network = NeuralNetwork()
 
     rl.init_window(1280, 720, "QWOP-BOT")
     while not rl.window_should_close():
@@ -428,8 +436,7 @@ def main():
                              character.left_calf.limb.body.position,
                              character.left_foot.body.position)
 
-        neural_network = NeuralNetwork()
-        inputs = positions.get_position_all_x() + positions.get_position_all_y()
+        inputs = np.asarray(positions.get_position_all_x() + positions.get_position_all_y())
 
         output = neural_network.feedforward(inputs)
 
