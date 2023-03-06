@@ -24,23 +24,38 @@ def character_data_list(character: Character) -> list[float]:
 
 
 class CharacterSimulation:
-    def __init__(self, ground_body: pm.Body, ground_shape: pm.Shape):
+    def __init__(self, ground_position: tuple[float, float], ground_poly: list[tuple[float, float]]):
         self.space: pm.Space = pm.Space()
         self.space.gravity = (0, -900.0)
 
         self.character: Character = Character(self.space, leg_muscle_strength=1_000_000.0, arm_muscle_strength=50_000.0)
 
+        ground_body: pm.Body = pm.Body(body_type=pm.Body.STATIC)
+        ground_body.position = ground_position
+        ground_shape = pm.Poly(ground_body, ground_poly)
+        ground_shape.friction = 0.8
+        ground_shape.collision_type = pm.Body.STATIC
+
         self.space.add(ground_body, ground_shape)
 
         self.neural_network: NeuralNetwork = NeuralNetwork()
 
+        self.outputs = np.asarray(character_data_list(self.character))
+
     def step(self) -> None:
         self.space.step(1.0 / 60.0)
+        inputs = np.asarray(character_data_list(self.character))
+        self.outputs = self.neural_network.feedforward(inputs)
+        if self.outputs[0] >= 0.5:
+            self.character_move_legs_q()
+        elif self.outputs[1] >= 0.5:
+            self.character_move_legs_w()
+        if self.outputs[2] >= 0.5:
+            self.character_move_knees_o()
+        elif self.outputs[3] >= 0.5:
+            self.character_move_knees_p()
 
-    def sim_position(self) -> rl.Vector2:
-        return rl.Vector2(self.character.torso.body.position.x, self.character.torso.body.position.y)
-
-    def draw_position(self) -> rl.Vector2:
+    def character_position(self) -> rl.Vector2:
         return rl.Vector2(self.character.torso.body.position.x, -self.character.torso.body.position.y + 100)
 
     def draw_character(self) -> None:
@@ -65,51 +80,52 @@ def main():
     rl.set_config_flags(rl.ConfigFlags.FLAG_MSAA_4X_HINT)
     rl.init_window(1280, 720, "QWOP-BOT")
 
-    ground_body: pm.Body = pm.Body(body_type=pm.Body.STATIC)
-    ground_body.position = 300, 150
+    ground_position = 300, 150
     ground_poly = [
         (-500, -25),
         (-500, 25),
         (500, 25),
         (500, -25),
     ]
+
+    sim_list: list[CharacterSimulation] = [CharacterSimulation(ground_position, ground_poly) for _ in range(10)]
+
+    ground_body: pm.Body = pm.Body(body_type=pm.Body.STATIC)
+    ground_body.position = ground_position
     ground_shape = pm.Poly(ground_body, ground_poly)
     ground_shape.friction = 0.8
     ground_shape.collision_type = pm.Body.STATIC
 
-    sim = CharacterSimulation(ground_body, ground_shape)
-
     while not rl.window_should_close():
+        if rl.is_key_pressed(rl.KeyboardKey.KEY_R):
+            sim_list.clear()
+            sim_list = [CharacterSimulation(ground_position, ground_poly) for _ in range(10)]
 
-        sim.step()
-
-        camera.target = sim.draw_position()
+        for sim in sim_list:
+            sim.step()
 
         rl.begin_drawing()
         rl.begin_mode_2d(camera)
 
         rl.clear_background(rl.BLACK)
 
-        sim.draw_character()
+        for sim in sim_list:
+            sim.draw_character()
 
         rl.draw_rectangle_pro(rl.Rectangle(round(ground_body.position.x), round(-ground_body.position.y), 1000, 50),
                               rl.Vector2(1000 / 2, 50 / 2), 0.0, rl.GREEN)
 
-        if rl.is_key_down(rl.KeyboardKey.KEY_Q):
-            sim.character_move_legs_q()
-        elif rl.is_key_down(rl.KeyboardKey.KEY_W):
-            sim.character_move_legs_w()
-
-        if rl.is_key_down(rl.KeyboardKey.KEY_O):
-            sim.character_move_knees_o()
-        elif rl.is_key_down(rl.KeyboardKey.KEY_P):
-            sim.character_move_knees_p()
+        # if rl.is_key_down(rl.KeyboardKey.KEY_Q):
+        #     sim.character_move_legs_q()
+        # elif rl.is_key_down(rl.KeyboardKey.KEY_W):
+        #     sim.character_move_legs_w()
+        #
+        # if rl.is_key_down(rl.KeyboardKey.KEY_O):
+        #     sim.character_move_knees_o()
+        # elif rl.is_key_down(rl.KeyboardKey.KEY_P):
+        #     sim.character_move_knees_p()
 
         rl.end_mode_2d()
-
-        # inputs = np.asarray(character_data_list(character))
-        #
-        # output = neural_network.feedforward(inputs)
 
         # def on_collision(arbiter, space, data):
         #     # Get the shapes that collided
@@ -126,7 +142,13 @@ def main():
         #             shape_1 == ground_shape and shape_2 in list_of_shapes):
         #         print("UPPER-BODY TOUCHED THE FLOOR")
 
-        rl.draw_text("Distance: " + str(round(sim.draw_position().x, 0) / 1000.0) + "m", 20, 0, 50,
+        max_x = -float('inf')
+        for sim in sim_list:
+            if sim.character_position().x > max_x:
+                max_x = sim.character_position().x
+                camera.target = sim.character_position()
+
+        rl.draw_text("Max Distance: " + str(round(max_x, 0) / 1000.0) + "m", 20, 0, 50,
                      rl.Color(153, 204, 255, 255))
         rl.draw_text("Time: " + str(round(rl.get_time(), 2)), 20, 50, 50, rl.Color(153, 204, 255, 255))
 
