@@ -201,22 +201,21 @@ class Character:
 
     def draw(self) -> None:
         self.left_leg.limb.draw(rl.GRAY)
-        self.right_leg.limb.draw(rl.WHITE)
-
         self.left_calf.limb.draw(rl.GRAY)
+
+        self.right_leg.limb.draw(rl.WHITE)
         self.right_calf.limb.draw(rl.WHITE)
 
         self.left_foot.draw(rl.MAROON)
         self.right_foot.draw(rl.RED)
 
-        self.torso.draw(rl.MAROON)
+        self.neck.limb.draw(rl.BROWN)
         self.head.draw(rl.BROWN)
 
-        self.neck.limb.draw(rl.BROWN)
-
         self.left_biceps.limb.draw(rl.GRAY)
-        self.right_biceps.limb.draw(rl.WHITE)
         self.left_forearm.draw(rl.GRAY)
+        self.torso.draw(rl.MAROON)
+        self.right_biceps.limb.draw(rl.WHITE)
         self.right_forearm.draw(rl.WHITE)
 
     def move_legs_q(self) -> None:
