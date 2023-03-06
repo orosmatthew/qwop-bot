@@ -6,14 +6,8 @@ class NeuralNetwork:
 
     # TODO: Make the number of hidden layers variable
     def __init__(self, input_nodes: int = 24, hidden_nodes: int = 12, output_nodes: int = 4):
-        self.input_nodes: int = input_nodes
-        self.hidden_nodes: int = hidden_nodes
-        self.output_nodes: int = output_nodes
-
         self.bias_ih: float = np.random.randn()
         self.bias_ho: float = np.random.randn()
-
-        print(self.bias_ih)
 
         # Initialize weights from input layer to hidden layer
         # [
@@ -21,7 +15,7 @@ class NeuralNetwork:
         #   [in1 -> h2, in2 -> h2, in3 -> h2, ...],
         #   ...
         # ]
-        self.weights_ih: np.ndarray = np.random.randn(self.hidden_nodes, self.input_nodes + 1)  # + 1 is for bias
+        self.weights_ih: np.ndarray = np.random.randn(hidden_nodes, input_nodes + 1)  # + 1 is for bias
 
         # Initialize weights from hidden layer to output layer
         # [
@@ -29,7 +23,7 @@ class NeuralNetwork:
         #   [h1 -> out2, h2 -> out2, h3 -> out2, ...],
         #   ...
         # ]
-        self.weights_ho: np.ndarray = np.random.randn(self.output_nodes, self.hidden_nodes + 1)  # + 1 is for bias
+        self.weights_ho: np.ndarray = np.random.randn(output_nodes, hidden_nodes + 1)  # + 1 is for bias
 
     def feedforward(self, inputs: np.ndarray) -> np.ndarray:
         # Calculate outputs for hidden layer, by using dot product
@@ -44,3 +38,18 @@ class NeuralNetwork:
         output = np.asarray([sigmoid(np.dot(i, hidden_with_bias)) for i in self.weights_ho])
 
         return output
+
+    def load_data(self, data: dict) -> None:
+        self.bias_ih = data["bias_ih"]
+        self.bias_ho = data["bias_ho"]
+        self.weights_ih = np.asarray(data["weights_ih"])
+        self.weights_ho = np.asarray(data["weights_ho"])
+
+    def output_data(self) -> dict:
+        data = {
+            "bias_ih": self.bias_ih,
+            "bias_ho": self.bias_ho,
+            "weights_ih": self.weights_ih.tolist(),
+            "weights_ho": self.weights_ho.tolist()
+        }
+        return data

@@ -4,6 +4,7 @@ import numpy as np
 from character import Character
 from neural_network import NeuralNetwork
 from util import vec2d_to_arr
+import json
 
 
 def character_data_list(character: Character) -> list[float]:
@@ -104,6 +105,22 @@ def main():
     time_step = 1.0 / 60.0
 
     while not rl.window_should_close():
+        if rl.is_key_pressed(rl.KeyboardKey.KEY_S):
+            data = []
+            for sim in sim_list:
+                data.append(sim.neural_network.output_data())
+            with open("network.json", "w") as file:
+                json.dump(data, file)
+
+        if rl.is_key_pressed(rl.KeyboardKey.KEY_L):
+            with open("network.json", "r") as file:
+                data = json.load(file)
+            sim_list.clear()
+            sim_list = [CharacterSimulation(ground_position, ground_poly) for _ in range(len(data))]
+            sim_time = 0.0
+            for i, sim in enumerate(sim_list):
+                sim.neural_network.load_data(data[i])
+
         if rl.is_key_pressed(rl.KeyboardKey.KEY_R):
             sim_list.clear()
             sim_list = [CharacterSimulation(ground_position, ground_poly) for _ in range(10)]
