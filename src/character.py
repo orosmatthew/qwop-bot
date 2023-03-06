@@ -199,22 +199,22 @@ class Character:
         physics_space.add(self.body_left_leg_limit)
         physics_space.add(self.body_right_leg_limit)
 
-    def draw(self) -> None:
+    def draw(self, color: rl.Color) -> None:
         self.left_leg.limb.draw(rl.GRAY)
         self.left_calf.limb.draw(rl.GRAY)
 
         self.right_leg.limb.draw(rl.WHITE)
         self.right_calf.limb.draw(rl.WHITE)
 
-        self.left_foot.draw(rl.MAROON)
-        self.right_foot.draw(rl.RED)
+        self.left_foot.draw(color)
+        self.right_foot.draw(color)
 
         self.neck.limb.draw(rl.BROWN)
         self.head.draw(rl.BROWN)
 
         self.left_biceps.limb.draw(rl.GRAY)
         self.left_forearm.draw(rl.GRAY)
-        self.torso.draw(rl.MAROON)
+        self.torso.draw(color)
         self.right_biceps.limb.draw(rl.WHITE)
         self.right_forearm.draw(rl.WHITE)
 
