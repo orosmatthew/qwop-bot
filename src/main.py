@@ -3,55 +3,24 @@ import pymunk as pm
 import numpy as np
 from character import Character
 from neural_network import NeuralNetwork
+from util import vec2d_to_arr
 
 
-# TODO: This class is a mess, need to refactor. Could really just be a function
-class CharacterData:
-    def __init__(self, torso_position: tuple,
-                 head_position: tuple,
-                 right_forearm_position: tuple,
-                 right_biceps_position: tuple,
-                 left_forearm_position: tuple,
-                 left_biceps_position: tuple,
-                 right_leg_position: tuple,
-                 right_calf_position: tuple,
-                 right_foot_position: tuple,
-                 left_leg_position: tuple,
-                 left_calf_position: tuple,
-                 left_foot_position: tuple,
-                 ):
-        self.torso_position = torso_position
-        self.head_position = head_position
-        self.right_forearm_position = right_forearm_position
-        self.right_biceps_position = right_biceps_position
-        self.left_forearm_position = left_forearm_position
-        self.left_biceps_position = left_biceps_position
-        self.right_leg_position = right_leg_position
-        self.right_calf_position = right_calf_position
-        self.right_foot_position = right_foot_position
-        self.left_leg_position = left_leg_position
-        self.left_calf_position = left_calf_position
-        self.left_foot_position = left_foot_position
-
-    def get_position_all(self):
-        return (self.torso_position,
-                self.head_position,
-                self.right_forearm_position,
-                self.right_biceps_position,
-                self.left_forearm_position,
-                self.left_biceps_position,
-                self.right_leg_position,
-                self.right_calf_position,
-                self.right_foot_position,
-                self.left_leg_position,
-                self.left_calf_position,
-                self.left_foot_position)
-
-    def get_position_all_x(self):
-        return [item[0] for item in self.get_position_all()]
-
-    def get_position_all_y(self):
-        return [item[1] for item in self.get_position_all()]
+def character_data_list(character: Character) -> list[float]:
+    data: list[float] = []
+    data.extend(vec2d_to_arr(character.torso.body.position))
+    data.extend(vec2d_to_arr(character.head.body.position))
+    data.extend(vec2d_to_arr(character.right_forearm.body.position))
+    data.extend(vec2d_to_arr(character.right_biceps.limb.body.position))
+    data.extend(vec2d_to_arr(character.left_forearm.body.position))
+    data.extend(vec2d_to_arr(character.left_biceps.limb.body.position))
+    data.extend(vec2d_to_arr(character.right_leg.limb.body.position))
+    data.extend(vec2d_to_arr(character.right_calf.limb.body.position))
+    data.extend(vec2d_to_arr(character.right_foot.body.position))
+    data.extend(vec2d_to_arr(character.left_leg.limb.body.position))
+    data.extend(vec2d_to_arr(character.left_calf.limb.body.position))
+    data.extend(vec2d_to_arr(character.left_foot.body.position))
+    return data
 
 
 def main():
@@ -112,20 +81,7 @@ def main():
 
         rl.end_mode_2d()
 
-        positions = CharacterData(character.torso.body.position,
-                                  character.head.body.position,
-                                  character.right_forearm.body.position,
-                                  character.right_biceps.limb.body.position,
-                                  character.left_forearm.body.position,
-                                  character.left_biceps.limb.body.position,
-                                  character.right_leg.limb.body.position,
-                                  character.right_calf.limb.body.position,
-                                  character.right_foot.body.position,
-                                  character.left_leg.limb.body.position,
-                                  character.left_calf.limb.body.position,
-                                  character.left_foot.body.position)
-
-        inputs = np.asarray(positions.get_position_all_x() + positions.get_position_all_y())
+        inputs = np.asarray(character_data_list(character))
 
         output = neural_network.feedforward(inputs)
 
@@ -144,14 +100,11 @@ def main():
                     shape_1 == ground_shape and shape_2 in list_of_shapes):
                 print("UPPER-BODY TOUCHED THE FLOOR")
 
-        # # Add the collision handler to the space
-        # handler = space.add_collision_handler(character.head.shape.collision_type, ground_shape.collision_type)
-        # handler.begin = on_collision
 
-        rl.draw_text("Distance: " + str(round(positions.left_foot_position[0], 0) / 1000.0) + "m", 20, 0, 50,
+        rl.draw_text("Distance: " + str(round(character.torso.body.position.x, 0) / 1000.0) + "m", 20, 0, 50,
                      rl.Color(153, 204, 255, 255))
         rl.draw_text("Time: " + str(round(rl.get_time(), 2)), 20, 50, 50, rl.Color(153, 204, 255, 255))
-        # break
+
         rl.end_drawing()
     rl.close_window()
 

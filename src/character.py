@@ -84,7 +84,7 @@ class Character:
         self.left_forearm = PhysicsLimb(physics_space, group=1, width=15, height=70, mass=0.1, friction=0.6,
                                         position=(230, 400))
 
-        # Connection(Joints)
+        # Connection (Joints)
         self.neck_to_torso = pm.PivotJoint(self.torso.body, self.neck.limb.body, (0, 75), (
             0, -5))  # The anchor point on body A, the anchor point on body B; for the last two variables
 
@@ -135,8 +135,6 @@ class Character:
         physics_space.add(self.neck_to_torso_limit)
         physics_space.add(self.neck_to_head_limit)
 
-        ###
-
         self.leg_muscle_strength = leg_muscle_strength
         self.arm_muscle_strength = arm_muscle_strength
 
@@ -182,7 +180,7 @@ class Character:
         self.right_knee_limit = pm.RotaryLimitJoint(self.right_calf.limb.body, self.right_leg.limb.body, radians(0),
                                                     radians(140))
         physics_space.add(self.right_knee_limit)
-        ##################
+
         self.hip_right = pm.PivotJoint(self.right_leg.limb.body, self.torso.body, (0, 50), (-5, -75))
         self.hip_left = pm.PivotJoint(self.left_leg.limb.body, self.torso.body, (0, 50), (5, -75))
 
@@ -200,13 +198,6 @@ class Character:
         physics_space.add(self.hip_limit)
         physics_space.add(self.body_left_leg_limit)
         physics_space.add(self.body_right_leg_limit)
-
-        ##################
-        # self.hip = pm.PivotJoint(self.left_leg.limb.body, self.right_leg.limb.body, (0, 50), (0, 50))
-        # physics_space.add(self.hip)
-        # self.hip_limit = pm.RotaryLimitJoint(self.left_leg.limb.body, self.right_leg.limb.body, radians(-120),
-        #                                      radians(120))
-        # physics_space.add(self.hip_limit)
 
     def draw(self) -> None:
         self.left_leg.limb.draw(rl.GRAY)

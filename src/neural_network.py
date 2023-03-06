@@ -25,14 +25,14 @@ class NeuralNetwork:
         # ]
         self.weights_ho: np.ndarray = np.random.randn(self.output_nodes, self.hidden_nodes)
 
-    def feedforward(self, inputs: np.ndarray):
+    def feedforward(self, inputs: np.ndarray) -> np.ndarray:
         # Calculate outputs for hidden layer, by using dot product
         # [the weights to each specific hidden layer neuron] * [the input neurons],
         # each neuron corresponds to each weight
-        hidden_outputs = [sigmoid(np.dot(i, inputs)) for i in self.weights_ih]
+        hidden_outputs = np.asarray([sigmoid(np.dot(i, inputs)) for i in self.weights_ih])
 
         # Calculate outputs for output layer, by multiplying
         # (weights of hidden layer output layer) by (hidden layer outputs) and add some bias
-        output = [sigmoid(np.dot(i, hidden_outputs)) for i in self.weights_ho]
+        output = np.asarray([sigmoid(np.dot(i, hidden_outputs)) for i in self.weights_ho])
 
         return output
