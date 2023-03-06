@@ -55,7 +55,7 @@ class CharacterSimulation:
             self.character_move_legs_w()
         if self.outputs[2] >= 0.5 > self.outputs[3]:
             self.character_move_knees_o()
-        elif self.outputs[3] >= 0.5 > self.outputs[2]:
+        if self.outputs[3] >= 0.5 > self.outputs[2]:
             self.character_move_knees_p()
 
         fitness = self.character_position().x
