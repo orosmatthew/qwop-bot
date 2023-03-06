@@ -42,6 +42,8 @@ class CharacterSimulation:
 
         self.outputs = np.asarray(character_data_list(self.character))
 
+        self.fitness = 0.0
+
     def step(self, time_step: float) -> None:
         self.space.step(time_step)
         inputs = np.asarray(character_data_list(self.character))
@@ -54,6 +56,8 @@ class CharacterSimulation:
             self.character_move_knees_o()
         elif self.outputs[3] >= 0.5:
             self.character_move_knees_p()
+
+        fitness = self.character_position().x
 
     def character_position(self) -> rl.Vector2:
         return rl.Vector2(self.character.torso.body.position.x, -self.character.torso.body.position.y + 100)
