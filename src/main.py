@@ -144,13 +144,15 @@ def main():
     finish_list: list[CharacterSimulation] = []
 
     # Define the time intervals for updating the neural networks
-    generation_duration = 50 # seconds
-    subgen_duration = 5 # seconds
+    generation_duration = 30 # seconds
+    subgen_duration = 3 # seconds
     
 
     sub_start_time = time.time()
     gen_count = 1
     subgen_count = 1
+
+    generation_list: list[CharacterSimulation] = []
 
     while not rl.window_should_close():
 
@@ -234,20 +236,35 @@ def main():
         #reset the generation (does not use next_gen function yet)  
         #simulate another generation after all batches were simulated
         if subgen_count > 10:
-            sim_list = [CharacterSimulation(ground_position, ground_poly) for _ in range(10)]
+            #sim_list = [CharacterSimulation(ground_position, ground_poly) for _ in range(10)]
+            
+            generation_list = [item for sublist in generation_list for item in sublist]
+            generation_list = sorted(generation_list, key=lambda x: x.fitness)
+            half_index = len(generation_list) // 2
+
+            #contains top 50% performers of this generation 
+            generation_list = generation_list[half_index:]
+
             gen_count += 1
             sim_time = 0.0
             subgen_count = 1
+
+            break
+
+            
+
+
         
         #reset subgeneration
         #Simulate batches of 10 characters at a time until all 100 are simulated
         if elapsed_subgen_time >= subgen_duration:
             
             sub_start_time = time.time()
-            sim_list = [CharacterSimulation(ground_position, ground_poly) for _ in range(10)]
             subgen_count += 1
             sub_sim_time = 0.0
 
+            sim_list = [CharacterSimulation(ground_position, ground_poly) for _ in range(10)]
+            generation_list.append(sim_list)
             
             
         
@@ -268,6 +285,8 @@ def main():
 
         rl.end_drawing()
     rl.close_window()
+
+    print(len(generation_list))
 
 
 if __name__ == "__main__":
