@@ -22,6 +22,7 @@ shape_2 = pymunk.Circle(body_2, 50)
 space.add(body_1, shape_1)
 space.add(body_2, shape_2)
 
+
 # Define a collision handler
 def on_collision(arbiter, space, data):
     # Get the shapes that collided
@@ -32,6 +33,7 @@ def on_collision(arbiter, space, data):
         # Restart the application
         python = sys.executable
         os.execl(python, python, *sys.argv)
+
 
 # Add the collision handler to the space
 handler = space.add_collision_handler(0, 0)
@@ -47,7 +49,7 @@ while True:
         angle = body.angle
         pyray.draw_circle(screen, (0, 0, 255), (int(pos.x), int(pos.y)), 50)
         pyray.draw_line(screen, (0, 255, 0), (int(pos.x), int(pos.y)),
-                         (int(pos.x + 50 * math.cos(angle)), int(pos.y + 50 * math.sin(angle))), 3)
+                        (int(pos.x + 50 * math.cos(angle)), int(pos.y + 50 * math.sin(angle))), 3)
 
     # Step the simulation forward
     space.step(1 / 60)
@@ -60,4 +62,3 @@ while True:
         if event.type == pyray.QUIT:
             pyray.quit()
             sys.exit()
-
