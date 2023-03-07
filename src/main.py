@@ -24,7 +24,7 @@ def character_data_list(character: Character) -> list[float]:
     data.extend(vec2d_to_arr(character.left_foot.body.position))
     return data
 
-def next_gen(nn_1: NeuralNetwork, nn_2: NeuralNetwork) ->  dict:
+def next_gen(nn_1: NeuralNetwork, nn_2: NeuralNetwork) ->  NeuralNetwork:
     child_1_weights_ih: list[float] = []
     child_1_weights_ho: list[float] = []
 
@@ -50,12 +50,12 @@ def next_gen(nn_1: NeuralNetwork, nn_2: NeuralNetwork) ->  dict:
     if random.random() < mutation_probability:
         child_1_weights_ho[0] += random.uniform(-1.0, 1.0)     
 
-    return {
-        "bias_ih": child_1_weights_ih[-1],
-        "bias_ho": child_1_weights_ho[-1],
-        "weights_ih": child_1_weights_ih,
-        "weights_ho": child_1_weights_ho
-    }
+    child: NeuralNetwork = NeuralNetwork
+
+    child.weights_ih = child_1_weights_ih
+    child.weights_ho = child_1_weights_ho
+
+    return child
 
 class CharacterSimulation:
     def __init__(self, ground_position: tuple[float, float], ground_poly: list[tuple[float, float]]):
@@ -137,6 +137,7 @@ def main():
 
     sim_time: float = 0.0
     time_step = 1.0 / 60.0
+    
 
     while not rl.window_should_close():
         if rl.is_key_pressed(rl.KeyboardKey.KEY_S):
@@ -210,9 +211,11 @@ def main():
 
         max_x = -float('inf')
         for sim in sim_list:
+            
             if sim.character_position().x > max_x:
                 max_x = sim.character_position().x
                 camera.target = sim.character_position()
+                
                 
             #add on collision for each character
 
