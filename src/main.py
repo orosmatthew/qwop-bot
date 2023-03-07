@@ -5,6 +5,7 @@ from character import Character
 from neural_network import NeuralNetwork
 from util import vec2d_to_arr
 import json
+import random
 
 
 def character_data_list(character: Character) -> list[float]:
@@ -23,6 +24,38 @@ def character_data_list(character: Character) -> list[float]:
     data.extend(vec2d_to_arr(character.left_foot.body.position))
     return data
 
+def next_gen(nn_1: NeuralNetwork, nn_2: NeuralNetwork) ->  dict:
+    child_1_weights_ih: list[float] = []
+    child_1_weights_ho: list[float] = []
+
+    mutation_probability = 0.05
+
+    #initialize child's weights
+    for i in range(len(nn_1.weights_ih)):
+        if random.random() < 0.5:
+            child_1_weights_ih.append(nn_1.weights_ih[i])
+        else:
+            child_1_weights_ih.append(nn_2.weights_ih[i])
+
+    for i in range(len(nn_1.weights_ho)):
+        if random.random() < 0.5:
+            child_1_weights_ho.append(nn_1.weights_ho[i])
+        else:
+            child_1_weights_ho.append(nn_2.weights_ho[i])
+    
+    #mutate the first connection in ih and ho 
+    if random.random() < mutation_probability:
+        child_1_weights_ih[0] += random.uniform(-1.0, 1.0)
+
+    if random.random() < mutation_probability:
+        child_1_weights_ho[0] += random.uniform(-1.0, 1.0)     
+
+    return {
+        "bias_ih": child_1_weights_ih[-1],
+        "bias_ho": child_1_weights_ho[-1],
+        "weights_ih": child_1_weights_ih,
+        "weights_ho": child_1_weights_ho
+    }
 
 class CharacterSimulation:
     def __init__(self, ground_position: tuple[float, float], ground_poly: list[tuple[float, float]]):
@@ -49,6 +82,7 @@ class CharacterSimulation:
         self.space.step(time_step)
         inputs = np.asarray(character_data_list(self.character))
         self.outputs = self.neural_network.feedforward(inputs)
+
         if self.outputs[0] >= 0.5:
             self.character_move_legs_q()
         elif self.outputs[1] >= 0.5:
@@ -153,7 +187,7 @@ def main():
 
         rl.end_mode_2d()
 
-        # def on_collision(arbiter, space, data):
+        # def on_collision(arbiter, space, character):
         #     # Get the shapes that collided
         #     shape_1, shape_2 = arbiter.shapes
         #     list_of_shapes = [character.head.shape,
@@ -162,17 +196,25 @@ def main():
         #                       character.right_forearm.shape,
         #                       character.left_biceps.limb.shape,
         #                       character.left_forearm.shape]
-        #
+        
         #     # Check if the colliding shapes belong to the head and floor
         #     if (shape_1 in list_of_shapes and shape_2 == ground_shape) or (
         #             shape_1 == ground_shape and shape_2 in list_of_shapes):
-        #         print("UPPER-BODY TOUCHED THE FLOOR")
+        #         print("touched")
+        #         return True
+        #     return False
+        
+
+        #capture top 50% performers, before generation ends capture all sim.character_position().x, sort them pick last 50% using slice (use 2nd half)
+       
 
         max_x = -float('inf')
         for sim in sim_list:
             if sim.character_position().x > max_x:
                 max_x = sim.character_position().x
                 camera.target = sim.character_position()
+                
+            #add on collision for each character
 
         rl.draw_text("Max Distance: " + str(round(max_x, 0) / 1000.0) + "m", 20, 0, 50,
                      rl.Color(153, 204, 255, 255))
