@@ -6,7 +6,7 @@ from neural_network import NeuralNetwork
 from util import vec2d_to_arr
 import json
 import random
-
+import time 
 
 def character_data_list(character: Character) -> list[float]:
     data: list[float] = []
@@ -127,7 +127,7 @@ def main():
         (500, -25),
     ]
 
-    sim_list: list[CharacterSimulation] = [CharacterSimulation(ground_position, ground_poly) for _ in range(10)]
+    
 
     ground_body: pm.Body = pm.Body(body_type=pm.Body.STATIC)
     ground_body.position = ground_position
@@ -135,11 +135,25 @@ def main():
     ground_shape.friction = 0.8
     ground_shape.collision_type = pm.Body.STATIC
 
+    sim_list: list[CharacterSimulation] = [CharacterSimulation(ground_position, ground_poly) for _ in range(10)]
+
     sim_time: float = 0.0
+    sub_sim_time: float = 0.0
     time_step = 1.0 / 60.0
     
+    finish_list: list[CharacterSimulation] = []
+
+    # Define the time intervals for updating the neural networks
+    generation_duration = 50 # seconds
+    subgen_duration = 5 # seconds
+    
+
+    sub_start_time = time.time()
+    gen_count = 1
+    subgen_count = 1
 
     while not rl.window_should_close():
+
         if rl.is_key_pressed(rl.KeyboardKey.KEY_S):
             data = []
             for sim in sim_list:
@@ -164,6 +178,7 @@ def main():
         for sim in sim_list:
             sim.step(time_step)
         sim_time += time_step
+        sub_sim_time += time_step
 
         rl.begin_drawing()
         rl.begin_mode_2d(camera)
@@ -205,23 +220,51 @@ def main():
         #         return True
         #     return False
         
-
-        #capture top 50% performers, before generation ends capture all sim.character_position().x, sort them pick last 50% using slice (use 2nd half)
-       
-
+    
         max_x = -float('inf')
         for sim in sim_list:
-            
+
             if sim.character_position().x > max_x:
                 max_x = sim.character_position().x
                 camera.target = sim.character_position()
+
+              
+        elapsed_subgen_time = time.time() - sub_start_time
+
+        #reset the generation (does not use next_gen function yet)  
+        #simulate another generation after all batches were simulated
+        if subgen_count > 10:
+            sim_list = [CharacterSimulation(ground_position, ground_poly) for _ in range(10)]
+            gen_count += 1
+            sim_time = 0.0
+            subgen_count = 1
+        
+        #reset subgeneration
+        #Simulate batches of 10 characters at a time until all 100 are simulated
+        if elapsed_subgen_time >= subgen_duration:
+            
+            sub_start_time = time.time()
+            sim_list = [CharacterSimulation(ground_position, ground_poly) for _ in range(10)]
+            subgen_count += 1
+            sub_sim_time = 0.0
+
+            
+            
+        
+        
                 
                 
-            #add on collision for each character
+
 
         rl.draw_text("Max Distance: " + str(round(max_x, 0) / 1000.0) + "m", 20, 0, 50,
                      rl.Color(153, 204, 255, 255))
         rl.draw_text("Sim Time: " + str(round(sim_time, 2)), 20, 50, 50, rl.Color(153, 204, 255, 255))
+
+        rl.draw_text("Gen: " + str(gen_count), 20, 100, 50, rl.Color(153, 204, 255, 255))
+
+        rl.draw_text("SubGen: " + str(subgen_count), 20, 150, 50, rl.Color(153, 204, 255, 255))
+
+        rl.draw_text("SubGen Time: " + str(round(sub_sim_time, 2)), 20, 200, 50, rl.Color(153, 204, 255, 255))
 
         rl.end_drawing()
     rl.close_window()
