@@ -25,3 +25,5 @@ df.head()
 new_df = pd.concat([df, norm], axis = 1) #Concat color and normalized network 
 
 new_df.head()
+
+new_df.plot.bar(xlabel = 'Runner #', ylabel = 'Weight', stacked = True)
