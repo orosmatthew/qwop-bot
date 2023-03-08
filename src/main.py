@@ -24,38 +24,10 @@ def character_data_list(character: Character) -> list[float]:
     data.extend(vec2d_to_arr(character.left_foot.body.position))
     return data
 
-def next_gen(nn_1: NeuralNetwork, nn_2: NeuralNetwork) ->  NeuralNetwork:
-    child_1_weights_ih: list[float] = []
-    child_1_weights_ho: list[float] = []
 
-    mutation_probability = 0.05
 
-    #initialize child's weights
-    for i in range(len(nn_1.weights_ih)):
-        if random.random() < 0.5:
-            child_1_weights_ih.append(nn_1.weights_ih[i])
-        else:
-            child_1_weights_ih.append(nn_2.weights_ih[i])
 
-    for i in range(len(nn_1.weights_ho)):
-        if random.random() < 0.5:
-            child_1_weights_ho.append(nn_1.weights_ho[i])
-        else:
-            child_1_weights_ho.append(nn_2.weights_ho[i])
     
-    #mutate the first connection in ih and ho 
-    if random.random() < mutation_probability:
-        child_1_weights_ih[0] += random.uniform(-1.0, 1.0)
-
-    if random.random() < mutation_probability:
-        child_1_weights_ho[0] += random.uniform(-1.0, 1.0)     
-
-    child: NeuralNetwork = NeuralNetwork
-
-    child.weights_ih = child_1_weights_ih
-    child.weights_ho = child_1_weights_ho
-
-    return child
 
 class CharacterSimulation:
     def __init__(self, ground_position: tuple[float, float], ground_poly: list[tuple[float, float]]):
@@ -113,6 +85,68 @@ class CharacterSimulation:
         self.character.move_knees_p()
 
 
+def make_next_gen_child_nn(nn_1: NeuralNetwork, nn_2: NeuralNetwork) ->  NeuralNetwork:
+    child_1_weights_ih: list[float] = []
+    child_1_weights_ho: list[float] = []
+
+
+    mutation_probability = 0.05
+
+    #initialize child's weights
+    for i in range(len(nn_1.weights_ih)):
+        if random.random() < 0.5:
+            child_1_weights_ih.append(nn_1.weights_ih[i])
+        else:
+            child_1_weights_ih.append(nn_2.weights_ih[i])
+
+    for i in range(len(nn_1.weights_ho)):
+        if random.random() < 0.5:
+            child_1_weights_ho.append(nn_1.weights_ho[i])
+        else:
+            child_1_weights_ho.append(nn_2.weights_ho[i])
+    
+    #mutate the first connection in ih and ho 
+    if random.random() < mutation_probability:
+        child_1_weights_ih[0] += random.uniform(-1.0, 1.0)
+
+    if random.random() < mutation_probability:
+        child_1_weights_ho[0] += random.uniform(-1.0, 1.0)     
+
+    child_network: NeuralNetwork = NeuralNetwork()
+
+    child_network.weights_ih = child_1_weights_ih
+    child_network.weights_ho = child_1_weights_ho
+    child_network.bias_ih = child_1_weights_ih[0][len(child_1_weights_ih[0])-1]
+    child_network.bias_ho = child_1_weights_ho[1][len(child_1_weights_ho[0])-1]
+    
+
+    return child_network
+
+
+def make_next_gen(generation_list: list[CharacterSimulation]) -> list[CharacterSimulation]:
+    children_list: list[CharacterSimulation] = []
+    
+    while len(children_list) < 101:
+        parent1, parent2 = random.sample(generation_list, 2)
+
+        child_network: NeuralNetwork = make_next_gen_child_nn(parent1.neural_network, parent2.neural_network)
+
+        ground_position = 300, 150
+        ground_poly = [
+            (-500, -25),
+            (-500, 25),
+            (500, 25),
+            (500, -25),
+        ]
+
+        child: CharacterSimulation = CharacterSimulation(ground_position, ground_poly)
+        #problem is here
+        child.neural_network = child_network
+
+        children_list.append(child)
+
+    return children_list
+
 def main():
     rl.set_target_fps(60)
     camera = rl.Camera2D(rl.Vector2(1280 / 2, 720 / 2), rl.Vector2(0, 0), 0.0, 1.0)
@@ -141,7 +175,6 @@ def main():
     sub_sim_time: float = 0.0
     time_step = 1.0 / 60.0
     
-    finish_list: list[CharacterSimulation] = []
 
     # Define the time intervals for updating the neural networks
     generation_duration = 30 # seconds
@@ -223,9 +256,19 @@ def main():
         #     return False
         
     
+
+
+
+
+
+
+
+
+    #############FIX LOOPS FOR NEXT GENS###############################################################################
+        
+
         max_x = -float('inf')
         for sim in sim_list:
-
             if sim.character_position().x > max_x:
                 max_x = sim.character_position().x
                 camera.target = sim.character_position()
@@ -233,42 +276,46 @@ def main():
               
         elapsed_subgen_time = time.time() - sub_start_time
 
-        #reset the generation (does not use next_gen function yet)  
+        #reset the generation  
         #simulate another generation after all batches were simulated
         if subgen_count > 10:
             #sim_list = [CharacterSimulation(ground_position, ground_poly) for _ in range(10)]
             
             generation_list = [item for sublist in generation_list for item in sublist]
-            generation_list = sorted(generation_list, key=lambda x: x.fitness)
+            generation_list = sorted(generation_list, key=lambda x: x.character_position().x)
             half_index = len(generation_list) // 2
 
             #contains top 50% performers of this generation 
             generation_list = generation_list[half_index:]
 
+            children_list = make_next_gen(generation_list)
+
+            sim_list = children_list
+
+
             gen_count += 1
             sim_time = 0.0
             subgen_count = 1
 
-            break
-
-            
-
-
+        
         
         #reset subgeneration
         #Simulate batches of 10 characters at a time until all 100 are simulated
+        
         if elapsed_subgen_time >= subgen_duration:
             
             sub_start_time = time.time()
             subgen_count += 1
             sub_sim_time = 0.0
 
+            #needs fix (resets data for the second generation)
             sim_list = [CharacterSimulation(ground_position, ground_poly) for _ in range(10)]
             generation_list.append(sim_list)
             
             
         
-        
+    ###################################################################################################################
+   
                 
                 
 
@@ -286,7 +333,7 @@ def main():
         rl.end_drawing()
     rl.close_window()
 
-    print(len(generation_list))
+    
 
 
 if __name__ == "__main__":
