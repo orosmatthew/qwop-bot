@@ -24,11 +24,6 @@ def character_data_list(character: Character) -> list[float]:
     data.extend(vec2d_to_arr(character.left_foot.body.position))
     return data
 
-
-
-
-    
-
 class CharacterSimulation:
     def __init__(self, ground_position: tuple[float, float], ground_poly: list[tuple[float, float]]):
         self.space: pm.Space = pm.Space()
@@ -85,20 +80,22 @@ class CharacterSimulation:
         self.character.move_knees_p()
 
 
+#Make child nework of two parents
 def make_next_gen_child_nn(nn_1: NeuralNetwork, nn_2: NeuralNetwork) ->  NeuralNetwork:
-    child_1_weights_ih: list[float] = []
-    child_1_weights_ho: list[float] = []
+    child_1_weights_ih: list[list[float]] = []
+    child_1_weights_ho: list[list[float]] = []
 
 
     mutation_probability = 0.05
 
-    #initialize child's weights
+    #initialize child's ih weights
     for i in range(len(nn_1.weights_ih)):
         if random.random() < 0.5:
             child_1_weights_ih.append(nn_1.weights_ih[i])
         else:
             child_1_weights_ih.append(nn_2.weights_ih[i])
 
+    #initialize child's ho weights
     for i in range(len(nn_1.weights_ho)):
         if random.random() < 0.5:
             child_1_weights_ho.append(nn_1.weights_ho[i])
@@ -123,12 +120,15 @@ def make_next_gen_child_nn(nn_1: NeuralNetwork, nn_2: NeuralNetwork) ->  NeuralN
     return child_network
 
 
+#Make next 100 children (next generation)
 def make_next_gen(generation_list: list[CharacterSimulation]) -> list[CharacterSimulation]:
     children_list: list[CharacterSimulation] = []
     
     while len(children_list) < 101:
+        #randomly select two parents
         parent1, parent2 = random.sample(generation_list, 2)
 
+        #make child network based on the selected parents
         child_network: NeuralNetwork = make_next_gen_child_nn(parent1.neural_network, parent2.neural_network)
 
         ground_position = 300, 150
@@ -139,10 +139,9 @@ def make_next_gen(generation_list: list[CharacterSimulation]) -> list[CharacterS
             (500, -25),
         ]
 
+        #make a character, add to children_list 
         child: CharacterSimulation = CharacterSimulation(ground_position, ground_poly)
-        #problem is here
         child.neural_network = child_network
-
         children_list.append(child)
 
     return children_list
@@ -169,17 +168,21 @@ def main():
     ground_shape.friction = 0.8
     ground_shape.collision_type = pm.Body.STATIC
 
-    sim_list: list[CharacterSimulation] = [CharacterSimulation(ground_position, ground_poly) for _ in range(10)]
+    #create 100 random characters for the 1st generation
+    sim_list: list[CharacterSimulation] = [CharacterSimulation(ground_position, ground_poly) for _ in range(100)]
 
     sim_time: float = 0.0
     sub_sim_time: float = 0.0
     time_step = 1.0 / 60.0
     
 
-    # Define the time intervals for updating the neural networks
+    # Define the time intervals for updating the neural networks. We break down 100 into 10s and 10s would take 3 sec. Set that way for debugging 
     generation_duration = 30 # seconds
     subgen_duration = 3 # seconds
     
+    #indexes to read 10 characters at a time
+    start_subgen: int = 0
+    end_subgen: int = 10
 
     sub_start_time = time.time()
     gen_count = 1
@@ -188,7 +191,7 @@ def main():
     generation_list: list[CharacterSimulation] = []
 
     while not rl.window_should_close():
-
+        # NOTHING WAS CHANGED HERE ########################
         if rl.is_key_pressed(rl.KeyboardKey.KEY_S):
             data = []
             for sim in sim_list:
@@ -209,8 +212,9 @@ def main():
             sim_list.clear()
             sim_list = [CharacterSimulation(ground_position, ground_poly) for _ in range(10)]
             sim_time = 0.0
+        ##################################################
 
-        for sim in sim_list:
+        for sim in sim_list[start_subgen:end_subgen]: #[start_subgen:end_subgen] so only work with 10 characters at a time
             sim.step(time_step)
         sim_time += time_step
         sub_sim_time += time_step
@@ -220,7 +224,7 @@ def main():
 
         rl.clear_background(rl.BLACK)
 
-        for sim in sim_list:
+        for sim in sim_list[start_subgen:end_subgen]: #[start_subgen:end_subgen] so only work with 10 characters at a time
             sim.draw_character()
 
         rl.draw_rectangle_pro(rl.Rectangle(round(ground_body.position.x), round(-ground_body.position.y), 1000, 50),
@@ -259,16 +263,10 @@ def main():
 
 
 
-
-
-
-
-
-    #############FIX LOOPS FOR NEXT GENS###############################################################################
         
 
         max_x = -float('inf')
-        for sim in sim_list:
+        for sim in sim_list[start_subgen:end_subgen]: #[start_subgen:end_subgen] so only work with 10 characters at a time
             if sim.character_position().x > max_x:
                 max_x = sim.character_position().x
                 camera.target = sim.character_position()
@@ -279,10 +277,9 @@ def main():
         #reset the generation  
         #simulate another generation after all batches were simulated
         if subgen_count > 10:
-            #sim_list = [CharacterSimulation(ground_position, ground_poly) for _ in range(10)]
             
-            generation_list = [item for sublist in generation_list for item in sublist]
-            generation_list = sorted(generation_list, key=lambda x: x.character_position().x)
+            #sort by the distance moved forward
+            generation_list = sorted(sim_list, key=lambda x: x.character_position().x)
             half_index = len(generation_list) // 2
 
             #contains top 50% performers of this generation 
@@ -294,27 +291,24 @@ def main():
 
 
             gen_count += 1
+
+            #reset counters
             sim_time = 0.0
             subgen_count = 1
+            start_subgen = 0
+            end_subgen = 10
 
         
         
-        #reset subgeneration
-        #Simulate batches of 10 characters at a time until all 100 are simulated
-        
+        #moves to the next subgeneration when subgen_duration runs out
         if elapsed_subgen_time >= subgen_duration:
-            
             sub_start_time = time.time()
             subgen_count += 1
             sub_sim_time = 0.0
 
-            #needs fix (resets data for the second generation)
-            sim_list = [CharacterSimulation(ground_position, ground_poly) for _ in range(10)]
-            generation_list.append(sim_list)
+            start_subgen += 10
+            end_subgen += 10
             
-            
-        
-    ###################################################################################################################
    
                 
                 
