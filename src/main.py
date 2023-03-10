@@ -6,7 +6,7 @@ from neural_network import NeuralNetwork
 from util import vec2d_to_arr
 import json
 import random
-import time 
+import time
 
 def character_data_list(character: Character) -> list[float]:
     data: list[float] = []
@@ -23,6 +23,7 @@ def character_data_list(character: Character) -> list[float]:
     data.extend(vec2d_to_arr(character.left_calf.limb.body.position))
     data.extend(vec2d_to_arr(character.left_foot.body.position))
     return data
+
 
 class CharacterSimulation:
     def __init__(self, ground_position: tuple[float, float], ground_poly: list[tuple[float, float]]):
@@ -45,27 +46,39 @@ class CharacterSimulation:
 
         self.fitness = 0.0
 
+        self.color = rl.color_from_hsv(random.uniform(0, 360), 0.7, 0.9)
+
     def step(self, time_step: float) -> None:
         self.space.step(time_step)
         inputs = np.asarray(character_data_list(self.character))
         self.outputs = self.neural_network.feedforward(inputs)
-
-        if self.outputs[0] >= 0.5:
+        if self.outputs[0] >= 0.5 > self.outputs[1]:
             self.character_move_legs_q()
-        elif self.outputs[1] >= 0.5:
+        if self.outputs[1] >= 0.5 > self.outputs[0]:
             self.character_move_legs_w()
-        if self.outputs[2] >= 0.5:
+        if self.outputs[2] >= 0.5 > self.outputs[3]:
             self.character_move_knees_o()
-        elif self.outputs[3] >= 0.5:
+        if self.outputs[3] >= 0.5 > self.outputs[2]:
             self.character_move_knees_p()
 
         fitness = self.character_position().x
+
+    def output_data(self) -> dict:
+        data = {
+            "color": (self.color.r, self.color.g, self.color.b, self.color.a),
+            "network": self.neural_network.output_data()
+        }
+        return data
+
+    def load_data(self, data: dict) -> None:
+        self.color = rl.Color(data["color"][0], data["color"][1], data["color"][2], data["color"][3])
+        self.neural_network.load_data(data["network"])
 
     def character_position(self) -> rl.Vector2:
         return rl.Vector2(self.character.torso.body.position.x, -self.character.torso.body.position.y + 100)
 
     def draw_character(self) -> None:
-        self.character.draw()
+        self.character.draw(self.color)
 
     def character_move_legs_q(self) -> None:
         self.character.move_legs_q()
@@ -101,13 +114,13 @@ def make_next_gen_child_nn(nn_1: NeuralNetwork, nn_2: NeuralNetwork) ->  NeuralN
             child_1_weights_ho.append(nn_1.weights_ho[i])
         else:
             child_1_weights_ho.append(nn_2.weights_ho[i])
-    
-    #mutate the first connection in ih and ho 
+
+    #mutate the first connection in ih and ho
     if random.random() < mutation_probability:
         child_1_weights_ih[0] += random.uniform(-1.0, 1.0)
 
     if random.random() < mutation_probability:
-        child_1_weights_ho[0] += random.uniform(-1.0, 1.0)     
+        child_1_weights_ho[0] += random.uniform(-1.0, 1.0)
 
     child_network: NeuralNetwork = NeuralNetwork()
 
@@ -115,7 +128,7 @@ def make_next_gen_child_nn(nn_1: NeuralNetwork, nn_2: NeuralNetwork) ->  NeuralN
     child_network.weights_ho = child_1_weights_ho
     child_network.bias_ih = child_1_weights_ih[0][len(child_1_weights_ih[0])-1]
     child_network.bias_ho = child_1_weights_ho[1][len(child_1_weights_ho[0])-1]
-    
+
 
     return child_network
 
@@ -123,7 +136,7 @@ def make_next_gen_child_nn(nn_1: NeuralNetwork, nn_2: NeuralNetwork) ->  NeuralN
 #Make next 100 children (next generation)
 def make_next_gen(generation_list: list[CharacterSimulation]) -> list[CharacterSimulation]:
     children_list: list[CharacterSimulation] = []
-    
+
     while len(children_list) < 101:
         #randomly select two parents
         parent1, parent2 = random.sample(generation_list, 2)
@@ -139,7 +152,7 @@ def make_next_gen(generation_list: list[CharacterSimulation]) -> list[CharacterS
             (500, -25),
         ]
 
-        #make a character, add to children_list 
+        #make a character, add to children_list
         child: CharacterSimulation = CharacterSimulation(ground_position, ground_poly)
         child.neural_network = child_network
         children_list.append(child)
@@ -160,7 +173,7 @@ def main():
         (500, -25),
     ]
 
-    
+    sim_list: list[CharacterSimulation] = [CharacterSimulation(ground_position, ground_poly) for _ in range(10)]
 
     ground_body: pm.Body = pm.Body(body_type=pm.Body.STATIC)
     ground_body.position = ground_position
@@ -174,12 +187,12 @@ def main():
     sim_time: float = 0.0
     sub_sim_time: float = 0.0
     time_step = 1.0 / 60.0
-    
 
-    # Define the time intervals for updating the neural networks. We break down 100 into 10s and 10s would take 3 sec. Set that way for debugging 
+
+    # Define the time intervals for updating the neural networks. We break down 100 into 10s and 10s would take 3 sec. Set that way for debugging
     generation_duration = 30 # seconds
     subgen_duration = 3 # seconds
-    
+
     #indexes to read 10 characters at a time
     start_subgen: int = 0
     end_subgen: int = 10
@@ -191,11 +204,10 @@ def main():
     generation_list: list[CharacterSimulation] = []
 
     while not rl.window_should_close():
-        # NOTHING WAS CHANGED HERE ########################
         if rl.is_key_pressed(rl.KeyboardKey.KEY_S):
             data = []
             for sim in sim_list:
-                data.append(sim.neural_network.output_data())
+                data.append(sim.output_data())
             with open("network.json", "w") as file:
                 json.dump(data, file)
 
@@ -206,13 +218,12 @@ def main():
             sim_list = [CharacterSimulation(ground_position, ground_poly) for _ in range(len(data))]
             sim_time = 0.0
             for i, sim in enumerate(sim_list):
-                sim.neural_network.load_data(data[i])
+                sim.load_data(data[i])
 
         if rl.is_key_pressed(rl.KeyboardKey.KEY_R):
             sim_list.clear()
             sim_list = [CharacterSimulation(ground_position, ground_poly) for _ in range(10)]
             sim_time = 0.0
-        ##################################################
 
         for sim in sim_list[start_subgen:end_subgen]: #[start_subgen:end_subgen] so only work with 10 characters at a time
             sim.step(time_step)
@@ -251,19 +262,19 @@ def main():
         #                       character.right_forearm.shape,
         #                       character.left_biceps.limb.shape,
         #                       character.left_forearm.shape]
-        
+
         #     # Check if the colliding shapes belong to the head and floor
         #     if (shape_1 in list_of_shapes and shape_2 == ground_shape) or (
         #             shape_1 == ground_shape and shape_2 in list_of_shapes):
         #         print("touched")
         #         return True
         #     return False
-        
-    
 
 
 
-        
+
+
+
 
         max_x = -float('inf')
         for sim in sim_list[start_subgen:end_subgen]: #[start_subgen:end_subgen] so only work with 10 characters at a time
@@ -271,18 +282,18 @@ def main():
                 max_x = sim.character_position().x
                 camera.target = sim.character_position()
 
-              
+
         elapsed_subgen_time = time.time() - sub_start_time
 
-        #reset the generation  
+        #reset the generation
         #simulate another generation after all batches were simulated
         if subgen_count > 10:
-            
+
             #sort by the distance moved forward
             generation_list = sorted(sim_list, key=lambda x: x.character_position().x)
             half_index = len(generation_list) // 2
 
-            #contains top 50% performers of this generation 
+            #contains top 50% performers of this generation
             generation_list = generation_list[half_index:]
 
             children_list = make_next_gen(generation_list)
@@ -298,8 +309,8 @@ def main():
             start_subgen = 0
             end_subgen = 10
 
-        
-        
+
+
         #moves to the next subgeneration when subgen_duration runs out
         if elapsed_subgen_time >= subgen_duration:
             sub_start_time = time.time()
@@ -308,10 +319,10 @@ def main():
 
             start_subgen += 10
             end_subgen += 10
-            
-   
-                
-                
+
+
+
+
 
 
         rl.draw_text("Max Distance: " + str(round(max_x, 0) / 1000.0) + "m", 20, 0, 50,
@@ -327,7 +338,7 @@ def main():
         rl.end_drawing()
     rl.close_window()
 
-    
+
 
 
 if __name__ == "__main__":
