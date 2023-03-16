@@ -147,11 +147,11 @@ def main():
         # reset the generation
         # simulate another generation after all batches were simulated
         if subgen_count > 10:
-            # sort by the distance moved forward
-            generation_list: list[CharacterSimulation] = sorted(sim_list, key=lambda x: x.character_position().x)
-
-            for sim in generation_list:
+            for sim in sim_list:
                 sim.fitness = round(sim.character_position().x, 0) / 1000.0
+
+            # sort by the distance moved forward
+            generation_list: list[CharacterSimulation] = sorted(sim_list, key=lambda x: x.fitness)
 
             output_data(gen_count, generation_list)
 
