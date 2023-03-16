@@ -7,6 +7,7 @@ from util import vec2d_to_arr
 import json
 import random
 import time
+import os
 
 
 def character_data_list(character: Character) -> list[float]:
@@ -62,12 +63,11 @@ class CharacterSimulation:
         if self.outputs[3] >= 0.5 > self.outputs[2]:
             self.character_move_knees_p()
 
-        fitness = self.character_position().x
-
     def output_data(self) -> dict:
         data = {
             "color": (self.color.r, self.color.g, self.color.b, self.color.a),
-            "network": self.neural_network.output_data()
+            "network": self.neural_network.output_data(),
+            "fitness": self.fitness
         }
         return data
 
@@ -94,40 +94,60 @@ class CharacterSimulation:
         self.character.move_knees_p()
 
 
+dir_count = 0
+while True:
+    if not os.path.exists(os.path.join('out', str(dir_count))):
+        break
+    dir_count += 1
+
+
+def output_data(gen_count: int, gen_list: list[CharacterSimulation]):
+    if not os.path.exists('out'):
+        os.mkdir('out')
+    if not os.path.exists(os.path.join('out', str(dir_count))):
+        os.mkdir(os.path.join('out', str(dir_count)))
+    data: list[dict] = []
+    for sim in gen_list:
+        data.append(sim.output_data())
+    with open(os.path.join('out', str(dir_count), str(gen_count)), "w") as file:
+        json.dump(data, file)
+
+
 # Make child network of two parents
 def make_next_gen_child_nn(nn_1: NeuralNetwork, nn_2: NeuralNetwork) -> NeuralNetwork:
-    child_1_weights_ih: list[list[float]] = []
-    child_1_weights_ho: list[list[float]] = []
+    child_weights_ih: np.ndarray = np.zeros(nn_1.weights_ih.shape)
+    child_weights_ho: np.ndarray = np.zeros(nn_1.weights_ho.shape)
 
-    mutation_probability = 0.05
+    mutation_probability = 0.05  # between 0 and 0.5
 
     # initialize child's ih weights
-    for i in range(len(nn_1.weights_ih)):
-        if random.random() < 0.5:
-            child_1_weights_ih.append(nn_1.weights_ih[i])
-        else:
-            child_1_weights_ih.append(nn_2.weights_ih[i])
+    for i in range(child_weights_ih.shape[0]):
+        for j in range(child_weights_ih.shape[1]):
+            rand = random.random()
+            if rand < 0.5:
+                child_weights_ih[i][j] = nn_1.weights_ih[i][j]
+            elif rand > mutation_probability:
+                child_weights_ih[i][j] = nn_2.weights_ih[i][j]
+            else:
+                child_weights_ih[i][j] = random.gauss(0, 0.01)
 
     # initialize child's ho weights
-    for i in range(len(nn_1.weights_ho)):
-        if random.random() < 0.5:
-            child_1_weights_ho.append(nn_1.weights_ho[i])
-        else:
-            child_1_weights_ho.append(nn_2.weights_ho[i])
-
-    # mutate the first connection in ih and ho
-    if random.random() < mutation_probability:
-        child_1_weights_ih[0] += random.uniform(-1.0, 1.0)
-
-    if random.random() < mutation_probability:
-        child_1_weights_ho[0] += random.uniform(-1.0, 1.0)
+    for i in range(child_weights_ho.shape[0]):
+        for j in range(child_weights_ho.shape[1]):
+            rand = random.random()
+            if rand < 0.5:
+                child_weights_ho[i][j] = nn_1.weights_ho[i][j]
+            elif rand > mutation_probability:
+                child_weights_ho[i][j] = nn_2.weights_ho[i][j]
+            else:
+                child_weights_ho[i][j] = random.gauss(0, 0.01)
 
     child_network: NeuralNetwork = NeuralNetwork()
 
-    child_network.weights_ih = child_1_weights_ih
-    child_network.weights_ho = child_1_weights_ho
-    child_network.bias_ih = child_1_weights_ih[0][len(child_1_weights_ih[0]) - 1]
-    child_network.bias_ho = child_1_weights_ho[1][len(child_1_weights_ho[0]) - 1]
+    child_network.weights_ih = child_weights_ih
+    child_network.weights_ho = child_weights_ho
+    child_network.bias_ih = nn_1.bias_ih if random.random() < 0.5 else nn_2.bias_ih
+    child_network.bias_ho = nn_1.bias_ho if random.random() < 0.5 else nn_2.bias_ho
 
     return child_network
 
@@ -198,8 +218,6 @@ def main():
     sub_start_time = time.time()
     gen_count = 1
     subgen_count = 1
-
-    generation_list: list[CharacterSimulation] = []
 
     while not rl.window_should_close():
         if rl.is_key_pressed(rl.KeyboardKey.KEY_S):
@@ -281,9 +299,15 @@ def main():
 
         # reset the generation
         # simulate another generation after all batches were simulated
-        if subgen_count > 10:
+        if subgen_count > 1:
             # sort by the distance moved forward
-            generation_list = sorted(sim_list, key=lambda x: x.character_position().x)
+            generation_list: list[CharacterSimulation] = sorted(sim_list, key=lambda x: x.character_position().x)
+
+            for sim in generation_list:
+                sim.fitness = round(sim.character_position().x, 0) / 1000.0
+
+            output_data(gen_count, generation_list)
+
             half_index = len(generation_list) // 2
 
             # contains top 50% performers of this generation
