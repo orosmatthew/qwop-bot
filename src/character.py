@@ -1,7 +1,8 @@
 import pyray as rl
 import pymunk as pm
-from util import gen_rect_verts
 from math import degrees, radians
+
+from util import gen_rect_verts, vec2d_to_arr
 
 
 class PhysicsLimb:
@@ -253,3 +254,20 @@ class Character:
     def relax_knees(self) -> None:
         self.left_calf.relax_muscle()
         self.right_calf.relax_muscle()
+
+
+def character_data_list(character: Character) -> list[float]:
+    data: list[float] = []
+    data.extend(vec2d_to_arr(character.torso.body.position))
+    data.extend(vec2d_to_arr(character.head.body.position))
+    data.extend(vec2d_to_arr(character.right_forearm.body.position))
+    data.extend(vec2d_to_arr(character.right_biceps.limb.body.position))
+    data.extend(vec2d_to_arr(character.left_forearm.body.position))
+    data.extend(vec2d_to_arr(character.left_biceps.limb.body.position))
+    data.extend(vec2d_to_arr(character.right_leg.limb.body.position))
+    data.extend(vec2d_to_arr(character.right_calf.limb.body.position))
+    data.extend(vec2d_to_arr(character.right_foot.body.position))
+    data.extend(vec2d_to_arr(character.left_leg.limb.body.position))
+    data.extend(vec2d_to_arr(character.left_calf.limb.body.position))
+    data.extend(vec2d_to_arr(character.left_foot.body.position))
+    return data
