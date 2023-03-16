@@ -299,7 +299,7 @@ def main():
 
         # reset the generation
         # simulate another generation after all batches were simulated
-        if subgen_count > 1:
+        if subgen_count > 10:
             # sort by the distance moved forward
             generation_list: list[CharacterSimulation] = sorted(sim_list, key=lambda x: x.character_position().x)
 
