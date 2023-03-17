@@ -103,7 +103,7 @@ def main():
                    start_subgen:end_subgen]:  # [start_subgen:end_subgen] so only work with 10 characters at a time
             sim.draw_character()
 
-        rl.draw_rectangle_pro(rl.Rectangle(round(ground_body.position.x), round(-ground_body.position.y), 1000, 50),
+        rl.draw_rectangle_pro(rl.Rectangle(round(ground_body.position.x)-500, round(-ground_body.position.y), 100000000000, 500),
                               rl.Vector2(1000 / 2, 50 / 2), 0.0, rl.GREEN)
 
         # if rl.is_key_down(rl.KeyboardKey.KEY_Q):
