@@ -32,12 +32,12 @@ def main():
     rl.set_config_flags(rl.ConfigFlags.FLAG_MSAA_4X_HINT)
     rl.init_window(1280, 720, "QWOP-BOT")
 
-    ground_position = 300, 150
+    ground_position = 50, 150
     ground_poly = [
-        (-500, -25),
-        (-500, 25),
-        (500, 25),
-        (500, -25),
+        (-50000, -25),
+        (-50000, 25),
+        (50000, 25),
+        (50000, -25),
     ]
 
     ground_body: pm.Body = pm.Body(body_type=pm.Body.STATIC)
@@ -103,8 +103,8 @@ def main():
                    start_subgen:end_subgen]:  # [start_subgen:end_subgen] so only work with 10 characters at a time
             sim.draw_character()
 
-        rl.draw_rectangle_pro(rl.Rectangle(round(ground_body.position.x)-500, round(-ground_body.position.y), 100000000000, 500),
-                              rl.Vector2(1000 / 2, 50 / 2), 0.0, rl.GREEN)
+        rl.draw_rectangle_pro(rl.Rectangle(round(ground_body.position.x), round(-ground_body.position.y), 50000, 50),
+                              rl.Vector2(50000 / 2, 50 / 2), 0.0, rl.GREEN)
 
         # if rl.is_key_down(rl.KeyboardKey.KEY_Q):
         #     sim.character_move_legs_q()
@@ -153,6 +153,7 @@ def main():
             # sort by the distance moved forward
             generation_list: list[CharacterSimulation] = sorted(sim_list, key=lambda x: x.fitness)
 
+
             output_data(gen_count, generation_list)
 
             half_index = len(generation_list) // 2
@@ -174,6 +175,7 @@ def main():
 
         # moves to the next sub-generation when subgen_duration runs out
         if elapsed_subgen_time >= subgen_duration:
+
             sub_start_time = time.time()
             subgen_count += 1
             sub_sim_time = 0.0
