@@ -9,6 +9,7 @@ from neural_network import NeuralNetwork
 
 class CharacterSimulation:
     def __init__(self, ground_position: tuple[float, float], ground_poly: list[tuple[float, float]]):
+        self.collided = False
         self.space: pm.Space = pm.Space()
         self.space.gravity = (0, -900.0)
 
@@ -29,6 +30,11 @@ class CharacterSimulation:
         self.fitness = 0.0
 
         self.color = rl.color_from_hsv(random.uniform(0, 360), 0.7, 0.9)
+
+    def collision_detection(self, arbiter, space, data):
+        self.collided = True
+    def get_Space(self):
+        return self.space
 
     def step(self, time_step: float) -> None:
         self.space.step(time_step)
@@ -59,7 +65,7 @@ class CharacterSimulation:
         return rl.Vector2(self.character.torso.body.position.x, -self.character.torso.body.position.y + 100)
 
     def draw_character(self) -> None:
-        self.character.draw(self.color)
+        self.character.draw(self.color, self.collided)
 
     def character_move_legs_q(self) -> None:
         self.character.move_legs_q()
