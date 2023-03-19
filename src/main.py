@@ -1,162 +1,29 @@
 import pyray as rl
 import pymunk as pm
-import numpy as np
-from character import Character
-from neural_network import NeuralNetwork
-from util import vec2d_to_arr
 import json
-import random
 import time
+import os
+
+from character_simulation import CharacterSimulation
+from next_gen import make_next_gen
+
+dir_count = 0
+while True:
+    if not os.path.exists(os.path.join('out', str(dir_count))):
+        break
+    dir_count += 1
 
 
-def character_data_list(character: Character) -> list[float]:
-    data: list[float] = []
-    data.extend(vec2d_to_arr(character.torso.body.position))
-    data.extend(vec2d_to_arr(character.head.body.position))
-    data.extend(vec2d_to_arr(character.right_forearm.body.position))
-    data.extend(vec2d_to_arr(character.right_biceps.limb.body.position))
-    data.extend(vec2d_to_arr(character.left_forearm.body.position))
-    data.extend(vec2d_to_arr(character.left_biceps.limb.body.position))
-    data.extend(vec2d_to_arr(character.right_leg.limb.body.position))
-    data.extend(vec2d_to_arr(character.right_calf.limb.body.position))
-    data.extend(vec2d_to_arr(character.right_foot.body.position))
-    data.extend(vec2d_to_arr(character.left_leg.limb.body.position))
-    data.extend(vec2d_to_arr(character.left_calf.limb.body.position))
-    data.extend(vec2d_to_arr(character.left_foot.body.position))
-    return data
-
-
-class CharacterSimulation:
-    def __init__(self, ground_position: tuple[float, float], ground_poly: list[tuple[float, float]]):
-        self.space: pm.Space = pm.Space()
-        self.space.gravity = (0, -900.0)
-
-        self.character: Character = Character(self.space, leg_muscle_strength=1_000_000.0, arm_muscle_strength=50_000.0)
-
-        ground_body: pm.Body = pm.Body(body_type=pm.Body.STATIC)
-        ground_body.position = ground_position
-        ground_shape = pm.Poly(ground_body, ground_poly)
-        ground_shape.friction = 0.8
-        ground_shape.collision_type = pm.Body.STATIC
-
-        self.space.add(ground_body, ground_shape)
-
-        self.neural_network: NeuralNetwork = NeuralNetwork()
-
-        self.outputs = np.asarray(character_data_list(self.character))
-
-        self.fitness = 0.0
-
-        self.color = rl.color_from_hsv(random.uniform(0, 360), 0.7, 0.9)
-
-    def step(self, time_step: float) -> None:
-        self.space.step(time_step)
-        inputs = np.asarray(character_data_list(self.character))
-        self.outputs = self.neural_network.feedforward(inputs)
-        if self.outputs[0] >= 0.5 > self.outputs[1]:
-            self.character_move_legs_q()
-        if self.outputs[1] >= 0.5 > self.outputs[0]:
-            self.character_move_legs_w()
-        if self.outputs[2] >= 0.5 > self.outputs[3]:
-            self.character_move_knees_o()
-        if self.outputs[3] >= 0.5 > self.outputs[2]:
-            self.character_move_knees_p()
-
-        fitness = self.character_position().x
-
-    def output_data(self) -> dict:
-        data = {
-            "color": (self.color.r, self.color.g, self.color.b, self.color.a),
-            "network": self.neural_network.output_data()
-        }
-        return data
-
-    def load_data(self, data: dict) -> None:
-        self.color = rl.Color(data["color"][0], data["color"][1], data["color"][2], data["color"][3])
-        self.neural_network.load_data(data["network"])
-
-    def character_position(self) -> rl.Vector2:
-        return rl.Vector2(self.character.torso.body.position.x, -self.character.torso.body.position.y + 100)
-
-    def draw_character(self) -> None:
-        self.character.draw(self.color)
-
-    def character_move_legs_q(self) -> None:
-        self.character.move_legs_q()
-
-    def character_move_legs_w(self) -> None:
-        self.character.move_legs_w()
-
-    def character_move_knees_o(self) -> None:
-        self.character.move_knees_o()
-
-    def character_move_knees_p(self) -> None:
-        self.character.move_knees_p()
-
-
-# Make child network of two parents
-def make_next_gen_child_nn(nn_1: NeuralNetwork, nn_2: NeuralNetwork) -> NeuralNetwork:
-    child_1_weights_ih: list[list[float]] = []
-    child_1_weights_ho: list[list[float]] = []
-
-    mutation_probability = 0.05
-
-    # initialize child's ih weights
-    for i in range(len(nn_1.weights_ih)):
-        if random.random() < 0.5:
-            child_1_weights_ih.append(nn_1.weights_ih[i])
-        else:
-            child_1_weights_ih.append(nn_2.weights_ih[i])
-
-    # initialize child's ho weights
-    for i in range(len(nn_1.weights_ho)):
-        if random.random() < 0.5:
-            child_1_weights_ho.append(nn_1.weights_ho[i])
-        else:
-            child_1_weights_ho.append(nn_2.weights_ho[i])
-
-    # mutate the first connection in ih and ho
-    if random.random() < mutation_probability:
-        child_1_weights_ih[0] += random.uniform(-1.0, 1.0)
-
-    if random.random() < mutation_probability:
-        child_1_weights_ho[0] += random.uniform(-1.0, 1.0)
-
-    child_network: NeuralNetwork = NeuralNetwork()
-
-    child_network.weights_ih = child_1_weights_ih
-    child_network.weights_ho = child_1_weights_ho
-    child_network.bias_ih = child_1_weights_ih[0][len(child_1_weights_ih[0]) - 1]
-    child_network.bias_ho = child_1_weights_ho[1][len(child_1_weights_ho[0]) - 1]
-
-    return child_network
-
-
-# Make next 100 children (next generation)
-def make_next_gen(generation_list: list[CharacterSimulation]) -> list[CharacterSimulation]:
-    children_list: list[CharacterSimulation] = []
-
-    while len(children_list) < 101:
-        # randomly select two parents
-        parent1, parent2 = random.sample(generation_list, 2)
-
-        # make child network based on the selected parents
-        child_network: NeuralNetwork = make_next_gen_child_nn(parent1.neural_network, parent2.neural_network)
-
-        ground_position = 300, 150
-        ground_poly = [
-            (-500, -25),
-            (-500, 25),
-            (500, 25),
-            (500, -25),
-        ]
-
-        # make a character, add to children_list
-        child: CharacterSimulation = CharacterSimulation(ground_position, ground_poly)
-        child.neural_network = child_network
-        children_list.append(child)
-
-    return children_list
+def output_data(gen_count: int, gen_list: list[CharacterSimulation]):
+    if not os.path.exists('out'):
+        os.mkdir('out')
+    if not os.path.exists(os.path.join('out', str(dir_count))):
+        os.mkdir(os.path.join('out', str(dir_count)))
+    data: list[dict] = []
+    for sim in gen_list:
+        data.append(sim.output_data())
+    with open(os.path.join('out', str(dir_count), str(gen_count)), "w") as file:
+        json.dump(data, file)
 
 
 def main():
@@ -198,8 +65,6 @@ def main():
     sub_start_time = time.time()
     gen_count = 1
     subgen_count = 1
-
-    generation_list: list[CharacterSimulation] = []
 
     while not rl.window_should_close():
         if rl.is_key_pressed(rl.KeyboardKey.KEY_S):
@@ -282,8 +147,14 @@ def main():
         # reset the generation
         # simulate another generation after all batches were simulated
         if subgen_count > 10:
+            for sim in sim_list:
+                sim.fitness = round(sim.character_position().x, 0) / 1000.0
+
             # sort by the distance moved forward
-            generation_list = sorted(sim_list, key=lambda x: x.character_position().x)
+            generation_list: list[CharacterSimulation] = sorted(sim_list, key=lambda x: x.fitness)
+
+            output_data(gen_count, generation_list)
+
             half_index = len(generation_list) // 2
 
             # contains top 50% performers of this generation
