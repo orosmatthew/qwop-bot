@@ -1,7 +1,6 @@
 import pyray as rl
 import pymunk as pm
 import json
-import time
 import os
 
 from character_simulation import CharacterSimulation
@@ -27,7 +26,6 @@ def output_data(gen_count: int, gen_list: list[CharacterSimulation]):
 
 
 def main():
-    rl.set_target_fps(60)
     camera = rl.Camera2D(rl.Vector2(1280 / 2, 720 / 2), rl.Vector2(0, 0), 0.0, 1.0)
     rl.set_config_flags(rl.ConfigFlags.FLAG_MSAA_4X_HINT)
     rl.init_window(1280, 720, "QWOP-BOT")
@@ -51,6 +49,7 @@ def main():
     sim_list: list[CharacterSimulation] = [CharacterSimulation(ground_position, ground_poly) for _ in range(100)]
 
     sim_time: float = 0.0
+    app_time: float = 0.0
     sub_sim_time: float = 0.0
     time_step = 1.0 / 60.0
 
@@ -63,12 +62,9 @@ def main():
     start_subgen: int = 0
     end_subgen: int = 10
 
-    sub_start_time = time.time()
+    sub_start_time = app_time
     gen_count = 1
     subgen_count = 1
-
-    app_time: float  = sim_time
-
 
     while not rl.window_should_close():
         if rl.is_key_pressed(rl.KeyboardKey.KEY_S):
@@ -96,6 +92,7 @@ def main():
                    start_subgen:end_subgen]:  # [start_subgen:end_subgen] so only work with 10 characters at a time
             sim.step(time_step)
         sim_time += time_step
+        app_time += time_step
         sub_sim_time += time_step
 
         rl.begin_drawing()
@@ -130,17 +127,16 @@ def main():
                 max_x = sim.character_position().x
                 camera.target = sim.character_position()
 
-        elapsed_subgen_time = time.time() - sub_start_time
+        elapsed_subgen_time = app_time - sub_start_time
 
         # reset the generation
         # simulate another generation after all batches were simulated
-        if subgen_count > 10:
+        if subgen_count > 2:
             for sim in sim_list:
                 sim.fitness = round(sim.character_position().x, 0) / 1000.0
 
             # sort by the distance moved forward
             generation_list: list[CharacterSimulation] = sorted(sim_list, key=lambda x: x.fitness)
-
 
             output_data(gen_count, generation_list)
 
@@ -163,8 +159,7 @@ def main():
 
         # moves to the next sub-generation when subgen_duration runs out
         if elapsed_subgen_time >= subgen_duration:
-
-            sub_start_time = time.time()
+            sub_start_time = app_time
             subgen_count += 1
             sub_sim_time = 0.0
 
