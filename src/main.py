@@ -22,7 +22,7 @@ def output_data(gen_count: int, gen_list: list[CharacterSimulation]):
     data: list[dict] = []
     for sim in gen_list:
         data.append(sim.output_data())
-    with open(os.path.join('out', str(dir_count), str(gen_count)), "w") as file:
+    with open(os.path.join('out', str(dir_count), str(gen_count) + ".json"), "w") as file:
         json.dump(data, file)
 
 
@@ -67,7 +67,7 @@ def main():
     gen_count = 1
     subgen_count = 1
 
-    #create collision handler for each sim
+    # create collision handler for each sim
     for sim in sim_list:
         space = sim.get_Space()
         handler = space.add_collision_handler(1, 2)
@@ -143,7 +143,6 @@ def main():
             # sort by the distance moved forward
             generation_list: list[CharacterSimulation] = sorted(sim_list, key=lambda x: x.fitness)
 
-
             output_data(gen_count, generation_list)
 
             half_index = len(generation_list) // 2
@@ -165,7 +164,6 @@ def main():
 
         # moves to the next sub-generation when subgen_duration runs out
         if elapsed_subgen_time >= subgen_duration:
-
             sub_start_time = time.time()
             subgen_count += 1
             sub_sim_time = 0.0
