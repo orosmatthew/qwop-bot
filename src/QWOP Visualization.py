@@ -31,6 +31,10 @@ df[41:60].plot.bar()
 df[61:80].plot.bar()
 df[81:100].plot.bar()
      
+df.plot.line(ylabel = 'Fitness') 
+
+
+
 
 agg_df = pd.DataFrame( [ df[0:10].mean() ,df[10:20].mean(),df[20:30].mean(), df[30:40].mean(),
           df[40:50].mean(), df[50:60].mean(), 
