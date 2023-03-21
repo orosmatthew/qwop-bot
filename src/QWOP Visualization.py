@@ -32,9 +32,11 @@ df[61:80].plot.bar()
 df[81:100].plot.bar()
      
 
-agg_df = pd.DataFrame( [df[10:20].mean(),df[20:30].mean(), df[30:40].mean(),
+agg_df = pd.DataFrame( [ df[0:10].mean() ,df[10:20].mean(),df[20:30].mean(), df[30:40].mean(),
           df[40:50].mean(), df[50:60].mean(), 
           df[60:70].mean(), df[70:80].mean(),
           df[80:90].mean(), df[90:100].mean() ])
 
 agg_df.plot.bar(xlabel = 'Generation #', ylabel = 'Fitness')
+agg_df.plot.line(xticks = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 
+                 xlabel = 'Generation #', ylabel = 'Fitness')
