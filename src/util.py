@@ -12,7 +12,6 @@ def gen_rect_verts(width: float, height: float) -> list[tuple[float, float]]:
         (width / 2, -height / 2),
     ]
 
-
 def sigmoid(x):
     x = np.clip(x, -500, 500)  # This prevents overflow from np.exp()
     return 1 / (1 + np.exp(-x))
