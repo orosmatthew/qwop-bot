@@ -32,12 +32,12 @@ def main():
     rl.set_config_flags(rl.ConfigFlags.FLAG_MSAA_4X_HINT)
     rl.init_window(1280, 720, "QWOP-BOT")
 
-    ground_position = 300, 150
+    ground_position = 50, 150
     ground_poly = [
-        (-500, -25),
-        (-500, 25),
-        (500, 25),
-        (500, -25),
+        (-50000, -25),
+        (-50000, 25),
+        (50000, 25),
+        (50000, -25),
     ]
 
     ground_body: pm.Body = pm.Body(body_type=pm.Body.STATIC)
@@ -45,6 +45,7 @@ def main():
     ground_shape = pm.Poly(ground_body, ground_poly)
     ground_shape.friction = 0.8
     ground_shape.collision_type = pm.Body.STATIC
+    ground_shape.collision_type = 2
 
     # create 100 random characters for the 1st generation
     sim_list: list[CharacterSimulation] = [CharacterSimulation(ground_position, ground_poly) for _ in range(100)]
@@ -65,6 +66,12 @@ def main():
     sub_start_time = time.time()
     gen_count = 1
     subgen_count = 1
+
+    #create collision handler for each sim
+    for sim in sim_list:
+        space = sim.get_Space()
+        handler = space.add_collision_handler(1, 2)
+        handler.separate = sim.collision_detection
 
     while not rl.window_should_close():
         if rl.is_key_pressed(rl.KeyboardKey.KEY_S):
@@ -103,8 +110,8 @@ def main():
                    start_subgen:end_subgen]:  # [start_subgen:end_subgen] so only work with 10 characters at a time
             sim.draw_character()
 
-        rl.draw_rectangle_pro(rl.Rectangle(round(ground_body.position.x), round(-ground_body.position.y), 1000, 50),
-                              rl.Vector2(1000 / 2, 50 / 2), 0.0, rl.GREEN)
+        rl.draw_rectangle_pro(rl.Rectangle(round(ground_body.position.x), round(-ground_body.position.y), 50000, 50),
+                              rl.Vector2(50000 / 2, 50 / 2), 0.0, rl.GREEN)
 
         # if rl.is_key_down(rl.KeyboardKey.KEY_Q):
         #     sim.character_move_legs_q()
@@ -117,23 +124,6 @@ def main():
         #     sim.character_move_knees_p()
 
         rl.end_mode_2d()
-
-        # def on_collision(arbiter, space, character):
-        #     # Get the shapes that collided
-        #     shape_1, shape_2 = arbiter.shapes
-        #     list_of_shapes = [character.head.shape,
-        #                       character.torso.shape,
-        #                       character.right_biceps.limb.shape,
-        #                       character.right_forearm.shape,
-        #                       character.left_biceps.limb.shape,
-        #                       character.left_forearm.shape]
-
-        #     # Check if the colliding shapes belong to the head and floor
-        #     if (shape_1 in list_of_shapes and shape_2 == ground_shape) or (
-        #             shape_1 == ground_shape and shape_2 in list_of_shapes):
-        #         print("touched")
-        #         return True
-        #     return False
 
         max_x = -float('inf')
         for sim in sim_list[
@@ -152,6 +142,7 @@ def main():
 
             # sort by the distance moved forward
             generation_list: list[CharacterSimulation] = sorted(sim_list, key=lambda x: x.fitness)
+
 
             output_data(gen_count, generation_list)
 
@@ -174,6 +165,7 @@ def main():
 
         # moves to the next sub-generation when subgen_duration runs out
         if elapsed_subgen_time >= subgen_duration:
+
             sub_start_time = time.time()
             subgen_count += 1
             sub_sim_time = 0.0

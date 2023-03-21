@@ -26,12 +26,12 @@ shape.friction = 0.35
 space.add(body, shape)
 
 ground_body = pymunk.Body(body_type=pymunk.Body.STATIC)
-ground_body.position = 500, 0
+ground_body.position = 500, 50
 ground_poly = [
-    (-500, -25),
-    (-500, 25),
-    (500, 25),
-    (500, -25),
+    (-50000, -25),
+    (-50000, 25),
+    (50000, 25),
+    (50000, -25),
 ]
 ground_shape = pymunk.Poly(ground_body, ground_poly)
 ground_shape.friction = 0.35
