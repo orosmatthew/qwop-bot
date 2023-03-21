@@ -67,11 +67,8 @@ def main():
     gen_count = 1
     subgen_count = 1
 
-    #create collision handler for each sim
-    for sim in sim_list:
-        space = sim.get_Space()
-        handler = space.add_collision_handler(1, 2)
-        handler.separate = sim.collision_detection
+    app_time: float  = sim_time
+
 
     while not rl.window_should_close():
         if rl.is_key_pressed(rl.KeyboardKey.KEY_S):
@@ -128,6 +125,7 @@ def main():
         max_x = -float('inf')
         for sim in sim_list[
                    start_subgen:end_subgen]:  # [start_subgen:end_subgen] so only work with 10 characters at a time
+            sim.handler.separate = sim.collision_detection
             if sim.character_position().x > max_x:
                 max_x = sim.character_position().x
                 camera.target = sim.character_position()
