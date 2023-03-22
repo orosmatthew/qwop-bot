@@ -21,7 +21,7 @@ def output_data(gen_count: int, gen_list: list[CharacterSimulation]):
     data: list[dict] = []
     for sim in gen_list:
         data.append(sim.output_data())
-    with open(os.path.join('out', str(dir_count), str(gen_count)), "w") as file:
+    with open(os.path.join('out', str(dir_count), str(gen_count) + ".json"), "w") as file:
         json.dump(data, file)
 
 
