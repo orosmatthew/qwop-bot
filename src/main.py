@@ -1,7 +1,6 @@
 import pyray as rl
 import pymunk as pm
 import json
-import time
 import os
 
 from character_simulation import CharacterSimulation
@@ -51,6 +50,7 @@ def main():
     sim_list: list[CharacterSimulation] = [CharacterSimulation(ground_position, ground_poly) for _ in range(100)]
 
     sim_time: float = 0.0
+    app_time: float = 0.0
     sub_sim_time: float = 0.0
     time_step = 1.0 / 60.0
 
@@ -63,15 +63,17 @@ def main():
     start_subgen: int = 0
     end_subgen: int = 10
 
-    sub_start_time = time.time()
+    sub_start_time = app_time
     gen_count = 1
     subgen_count = 1
+    subgen_num = 2
 
-    # create collision handler for each sim
-    for sim in sim_list:
-        space = sim.get_Space()
-        handler = space.add_collision_handler(1, 2)
-        handler.separate = sim.collision_detection
+
+    last_max = 0
+    last_max_time = 0
+    #time given for sims to move past max distance after subgen_duration time
+    subgen_duration_bonus = 3
+
 
     while not rl.window_should_close():
         if rl.is_key_pressed(rl.KeyboardKey.KEY_S):
@@ -99,6 +101,7 @@ def main():
                    start_subgen:end_subgen]:  # [start_subgen:end_subgen] so only work with 10 characters at a time
             sim.step(time_step)
         sim_time += time_step
+        app_time += time_step
         sub_sim_time += time_step
 
         rl.begin_drawing()
@@ -128,15 +131,20 @@ def main():
         max_x = -float('inf')
         for sim in sim_list[
                    start_subgen:end_subgen]:  # [start_subgen:end_subgen] so only work with 10 characters at a time
+            sim.handler.separate = sim.collision_detection
             if sim.character_position().x > max_x:
                 max_x = sim.character_position().x
                 camera.target = sim.character_position()
+            if max_x > last_max:
+                last_max = max_x
+                last_max_time = app_time
 
-        elapsed_subgen_time = time.time() - sub_start_time
+        elapsed_subgen_time = app_time - sub_start_time
+        elapsed_last_max_time = app_time - last_max_time
 
         # reset the generation
         # simulate another generation after all batches were simulated
-        if subgen_count > 10:
+        if subgen_count > subgen_num:
             for sim in sim_list:
                 sim.fitness = round(sim.character_position().x, 0) / 1000.0
 
@@ -162,14 +170,18 @@ def main():
             start_subgen = 0
             end_subgen = 10
 
-        # moves to the next sub-generation when subgen_duration runs out
+        # moves to the next sub-generation when subgen_duration runs out and no sim moves past the max distance in subgen_duration_bonus period of time (if they don't move longer subgen_duration_bonus)
         if elapsed_subgen_time >= subgen_duration:
-            sub_start_time = time.time()
-            subgen_count += 1
-            sub_sim_time = 0.0
+            if elapsed_last_max_time >= subgen_duration_bonus:
+                sub_start_time = app_time
+                subgen_count += 1
+                sub_sim_time = 0.0
 
-            start_subgen += 10
-            end_subgen += 10
+                start_subgen += 10
+                end_subgen += 10
+
+                last_max = 0
+                last_max_time = 0
 
         rl.draw_text("Max Distance: " + str(round(max_x, 0) / 1000.0) + "m", 20, 0, 50,
                      rl.Color(153, 204, 255, 255))
