@@ -26,7 +26,7 @@ def output_data(gen_count: int, gen_list: list[CharacterSimulation]):
 
 
 def main():
-    rl.set_target_fps(60)
+    rl.set_target_fps(120)
     camera = rl.Camera2D(rl.Vector2(1280 / 2, 720 / 2), rl.Vector2(0, 0), 0.0, 1.0)
     rl.set_config_flags(rl.ConfigFlags.FLAG_MSAA_4X_HINT)
     rl.init_window(1280, 720, "QWOP-BOT")
@@ -156,9 +156,11 @@ def main():
             half_index = len(generation_list) // 2
 
             # contains top 50% performers of this generation
-            generation_list = generation_list[half_index:]
+            generation_list = generation_list[half_index:len(generation_list)]
 
-            children_list = make_next_gen(generation_list)
+            children_list = make_next_gen(generation_list[0:len(generation_list)])
+            top_5 = generation_list[len(generation_list)-5:len(generation_list)]
+            children_list = children_list + top_5
 
             sim_list = children_list
 
