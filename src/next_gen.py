@@ -1,5 +1,8 @@
 import random
 import numpy as np
+import util
+import colorsys
+import pyray as rl
 
 from neural_network import NeuralNetwork
 from character_simulation import CharacterSimulation
@@ -48,24 +51,30 @@ def make_next_gen_child_nn(nn_1: NeuralNetwork, nn_2: NeuralNetwork) -> NeuralNe
 def make_next_gen(generation_list: list[CharacterSimulation]) -> list[CharacterSimulation]:
     children_list: list[CharacterSimulation] = []
 
-    while len(children_list) < 101:
+    while len(children_list) < 95:
         # randomly select two parents
         parent1, parent2 = random.sample(generation_list, 2)
 
         # make child network based on the selected parents
         child_network: NeuralNetwork = make_next_gen_child_nn(parent1.neural_network, parent2.neural_network)
 
-        ground_position = 300, 150
+        ground_position = 50, 150
         ground_poly = [
-            (-500, -25),
-            (-500, 25),
-            (500, 25),
-            (500, -25),
+            (-50000, -25),
+            (-50000, 25),
+            (50000, 25),
+            (50000, -25),
         ]
 
         # make a character, add to children_list
         child: CharacterSimulation = CharacterSimulation(ground_position, ground_poly)
         child.neural_network = child_network
+
+        mixed_color = colorsys.rgb_to_hsv(int((parent1.color.r + parent2.color.r)/2),
+                                          int((parent1.color.g + parent2.color.g)/2),
+                                          int((parent1.color.b + parent2.color.b)/2))
+
+        child.color = rl.color_from_hsv(mixed_color[0], mixed_color[1], mixed_color[2])
         children_list.append(child)
 
     return children_list

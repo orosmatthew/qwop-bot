@@ -7,7 +7,7 @@ from util import gen_rect_verts, vec2d_to_arr
 
 class PhysicsLimb:
     def __init__(self, physics_space: pm.Space, group: int, width: float, height: float, mass: float, friction: float,
-                 position: tuple[float, float]):
+                 position: tuple[float, float], collision_type: int):
         # Save the width and height
         self._width = width
         self._height = height
@@ -26,6 +26,9 @@ class PhysicsLimb:
         self.shape.filter = pm.ShapeFilter(group)
         self.body.position = position
 
+        self.shape.collision_type = collision_type
+
+
         # Add the limb to the physics world
         physics_space.add(self.body, self.shape)
 
@@ -39,9 +42,9 @@ class PhysicsLimb:
 
 class PhysicsLimbWithMuscle:
     def __init__(self, physics_space: pm.Space, group: int, width: float, height: float, mass: float, friction: float,
-                 position: tuple[float, float]):
+                 position: tuple[float, float], collision_type: int):
         # Create the base limb without the muscle
-        self.limb = PhysicsLimb(physics_space, group, width, height, mass, friction, position)
+        self.limb = PhysicsLimb(physics_space, group, width, height, mass, friction, position, collision_type)
         # Create muscle body which is a target for where the body should rotate to.
         # It is a kinematic body which means that it does not have physics but is
         # only moved using code that we write.
@@ -52,6 +55,7 @@ class PhysicsLimbWithMuscle:
         self.muscle = pm.DampedRotarySpring(self.muscle_body, self.limb.body, 0, 0.0, 6000.0)
         # Add it to the physics world
         physics_space.add(self.muscle_body, self.muscle)
+
 
     # Move the muscle with a specified strength and the angle relative to the limb
     def move_muscle(self, strength: float, angle: float) -> None:
@@ -67,23 +71,23 @@ class Character:
     def __init__(self, physics_space: pm.Space, leg_muscle_strength: float, arm_muscle_strength: float):
         # Body parts
         self.torso = PhysicsLimb(physics_space, group=1, width=40, height=150, mass=0.5, friction=1,
-                                 position=(200, 600))
+                                 position=(200, 600), collision_type=1)
 
         self.neck = PhysicsLimbWithMuscle(physics_space, group=1, width=20, height=10, mass=0.05, friction=1,
-                                          position=(230, 630))
+                                          position=(230, 630), collision_type=1)
 
         self.head = PhysicsLimb(physics_space, group=1, width=40, height=40, mass=0.3, friction=1,
-                                position=(230, 650))
+                                position=(230, 650), collision_type=1)
 
         self.right_biceps = PhysicsLimbWithMuscle(physics_space, group=1, width=15, height=80, mass=0.1, friction=0.6,
-                                                  position=(230, 400))
+                                                  position=(230, 400), collision_type=1)
         self.left_biceps = PhysicsLimbWithMuscle(physics_space, group=1, width=15, height=80, mass=0.1, friction=0.6,
-                                                 position=(230, 400))
+                                                 position=(230, 400), collision_type=1)
 
         self.right_forearm = PhysicsLimb(physics_space, group=1, width=15, height=70, mass=0.1, friction=0.6,
-                                         position=(230, 400))
+                                         position=(230, 400), collision_type=1)
         self.left_forearm = PhysicsLimb(physics_space, group=1, width=15, height=70, mass=0.1, friction=0.6,
-                                        position=(230, 400))
+                                        position=(230, 400), collision_type=1)
 
         # Connection (Joints)
         self.neck_to_torso = pm.PivotJoint(self.torso.body, self.neck.limb.body, (0, 75), (
@@ -140,10 +144,10 @@ class Character:
         self.arm_muscle_strength = arm_muscle_strength
 
         self.left_foot = PhysicsLimb(physics_space, group=1, width=30, height=20, mass=1, friction=0.6,
-                                     position=(50, 300))
+                                     position=(50, 300), collision_type=3)
 
         self.left_calf = PhysicsLimbWithMuscle(physics_space, group=1, width=15, height=100, mass=3, friction=0.6,
-                                               position=(100, 300))
+                                               position=(100, 300), collision_type=3)
 
         self.left_ankle = pm.PivotJoint(self.left_foot.body, self.left_calf.limb.body, (0, 25), (0, -45))
         physics_space.add(self.left_ankle)
@@ -153,7 +157,7 @@ class Character:
         physics_space.add(self.left_ankle_limit)
 
         self.left_leg = PhysicsLimbWithMuscle(physics_space, group=1, width=15, height=100, mass=3, friction=0.6,
-                                              position=(100, 300))
+                                              position=(100, 300), collision_type=3)
 
         self.left_knee = pm.PivotJoint(self.left_calf.limb.body, self.left_leg.limb.body, (0, 50), (0, -50))
         physics_space.add(self.left_knee)
@@ -162,10 +166,10 @@ class Character:
         physics_space.add(self.left_knee_limit)
 
         self.right_foot = PhysicsLimb(physics_space, group=1, width=30, height=20, mass=1, friction=0.6,
-                                      position=(250, 300))
+                                      position=(250, 300), collision_type=3)
 
         self.right_calf = PhysicsLimbWithMuscle(physics_space, group=1, width=15, height=100, mass=3, friction=0.6,
-                                                position=(250, 300))
+                                                position=(250, 300), collision_type=3)
 
         self.right_ankle = pm.PivotJoint(self.right_foot.body, self.right_calf.limb.body, (0, 25), (0, -45))
         physics_space.add(self.right_ankle)
@@ -174,7 +178,7 @@ class Character:
         physics_space.add(self.right_ankle_limit)
 
         self.right_leg = PhysicsLimbWithMuscle(physics_space, group=1, width=15, height=100, mass=3, friction=0.8,
-                                               position=(250, 300))
+                                               position=(250, 300), collision_type=3)
 
         self.right_knee = pm.PivotJoint(self.right_calf.limb.body, self.right_leg.limb.body, (0, 50), (0, -50))
         physics_space.add(self.right_knee)
@@ -200,7 +204,7 @@ class Character:
         physics_space.add(self.body_left_leg_limit)
         physics_space.add(self.body_right_leg_limit)
 
-    def draw(self, color: rl.Color) -> None:
+    def draw(self, color: rl.Color, collided) -> None:
         self.left_leg.limb.draw(rl.GRAY)
         self.left_calf.limb.draw(rl.GRAY)
 
@@ -211,7 +215,11 @@ class Character:
         self.right_foot.draw(color)
 
         self.neck.limb.draw(rl.BROWN)
-        self.head.draw(rl.BROWN)
+
+        if collided:
+            self.head.draw(rl.RED)
+        else:
+            self.head.draw(rl.BROWN)
 
         self.left_biceps.limb.draw(rl.GRAY)
         self.left_forearm.draw(rl.GRAY)
