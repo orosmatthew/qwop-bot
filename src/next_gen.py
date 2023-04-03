@@ -51,7 +51,7 @@ def make_next_gen_child_nn(nn_1: NeuralNetwork, nn_2: NeuralNetwork) -> NeuralNe
 def make_next_gen(generation_list: list[CharacterSimulation]) -> list[CharacterSimulation]:
     children_list: list[CharacterSimulation] = []
 
-    while len(children_list) < 101:
+    while len(children_list) < 95:
         # randomly select two parents
         parent1, parent2 = random.sample(generation_list, 2)
 
