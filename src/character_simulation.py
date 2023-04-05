@@ -31,10 +31,10 @@ class CharacterSimulation:
 
         self.color = rl.color_from_hsv(random.uniform(0, 360), 0.7, 0.9)
 
+        self.handler = self.space.add_collision_handler(1, 2)
+
     def collision_detection(self, arbiter, space, data):
         self.collided = True
-    def get_Space(self):
-        return self.space
 
     def step(self, time_step: float) -> None:
         self.space.step(time_step)
