@@ -12,59 +12,37 @@ import matplotlib.pyplot as plt
 import os
 import glob
 pd.set_option('expand_frame_repr', False)
-df = pd.read_json("out/0/1.json")
+#df = pd.read_json("out/0/1.json")
+#df.head()
+#df.describe()
 
 directory = "out/0"
 
-'''
-WIP - Loop through directory and append individual files into single dataframe
+temp = []                           
+agg_df = pd.DataFrame()             
 
 for filename in os.listdir(directory):
     f = os.path.join(directory, filename)
-    # checking if it is a file
     if os.path.isfile(f):
-        print(f)
+        temp.append(f)
+      
+def sortLen(item):
+    return len(item)
 
+temp.sort(key=sortLen)       
+      
+for i in temp:
+    agg_df = pd.concat([agg_df, pd.read_json(i)] ) 
 
-for filename in os.scandir(directory):
-    if filename.is_file():
-        print(filename.path)
-        
-        
-#filelist = glob.iglob(f'{directory}/*')
- filelist = glob.glob(os.path.join(directory, 'FV/*.json'))
-for filename in :
-    print(filename)
-        
-        
-'''
-
-df.head()
-df.describe()
-
-
-df1 = pd.read_json("out/0/1")
-df2 = pd.read_json("out/0/2")
-df3 = pd.read_json("out/0/3")
-df4 = pd.read_json("out/0/4")
-df5 = pd.read_json("out/0/5")
-df6 = pd.read_json("out/0/6")
-df7 = pd.read_json("out/0/7")
-df8 = pd.read_json("out/0/8")
-df9 = pd.read_json("out/0/9")
-df10 = pd.read_json("out/0/10")
-
-agg_df = df1.append([df2, df3, df4, df5, df6,
-                     df7, df8, df9, df10])
 
 agg_df = agg_df.drop(['network'], axis = 1)
 
 agg_df.plot.line(xlabel = 'Generation #', ylabel = 'Fitness')
 
-agg_df.plot.bar(xlabel = 'Generation #', ylabel = 'Fitness')
+#agg_df.plot.bar(xlabel = 'Generation #', ylabel = 'Fitness') #TO-DO fix or remove
 
 
-
+avg_df = agg_df.drop(['color'], axis = 1)
 avg_df = pd.DataFrame( [ agg_df[0:100].mean() ,agg_df[100:200].mean(),
                         agg_df[200:300].mean(), agg_df[300:400].mean(),
                         agg_df[400:500].mean(), agg_df[500:600].mean(), 
@@ -76,22 +54,17 @@ avg_df.plot.line(xticks = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], xlabel = 'Generation #
 
 avg_df.plot.bar(xlabel = 'Generation #', ylabel = 'Fitness')
 
-#Rearrange code 
-norm = pd.json_normalize(df['network'])  #Separate network column(biases)
-norm.head()
 
-df = df.drop(['network'], axis = 1)  #Drop original network column
-df.head()
-
-
-
-
-df['fitness'].describe()
 
 
 
 
 '''Old 
+
+#If Network Data needs to be cleaned  
+#norm = pd.json_normalize(df['network'])  #Separate network column(biases)
+#norm.head()
+
 df.plot.bar(ylabel = 'Fitness') #TO-DO remove x-ticks
 df[1:20].plot.bar()
 df[21:40].plot.bar()
