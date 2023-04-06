@@ -147,12 +147,23 @@
 \maketitle
 
 \begin{abstract}
-Abstract Here
+QWOP is a challenging 2-dimensional game where the goal is to make the main character walk/run to the right as far as possible without falling.
+The game's difficulty lies in its physics simulation, which makes movements hard to predict and requires a quick reaction time as well as an understanding of how the combinations of key presses translate to a desired movement on the screen.
+The character is controlled using four keyboard keys: Q, W, O, and P. Q and W control the thighs, and O and P control the knees by either rotating the joints one way or the other.
+As soon as an upper-body limb contacts the flat ground, the game is over and is restarted.
+The score of the game is based on the distance traveled by the character.\\
+In this project, we propose a simulation that allows an agent to learn to control the character and play the game of QWOP. Two main implementations are considered and attempted, both based on neural networks.
+The first method is a genetic algorithm approach to learning, while the second approach is a deep Q-learning method.\\
+The genetic approach is inspired by natural selection where the best performers get to reproduce and spread their genes to offspring.
+The new population then replaces the old one and plays the game again, and the process is repeated until the agents play the game well enough.\\
+The deep Q-learning approach is a powerful reinforcement learning method that uses neural networks to approximate the Q-function, which measures the expected reward of taking a certain action in a given state.
+By combining the benefits of deep learning and reinforcement learning, the deep Q-learning approach can learn to make optimal decisions in a wide range of environments, even in situations where the optimal policy is not known in advance.\\
 \end{abstract}
 
 \noindent Content Here
 
 \section{Problem Description}
+[TODO: Do we want to keep the description of the game in here or in abstract?]
 QWOP is a simple 2-dimensional game with the goal being to make the main character run to the right as far as possible without falling.
 The challenge of the game is its physics simulation.
 The character is controlled using four keyboard keys: Q, W, O, and P. Q and W control the thighs [TODO: Check if this is the right way around] and O and P control the knees by either rotating the joints one way or the other.
@@ -174,6 +185,12 @@ The weights are then adjusted from back to front based on how incorrect the netw
 \indent The difficulty with this approach for this domain of problem is that there is no simpel method of obtaining such labeled data in this problem.
 The game of QWOP is difficult for humans and such the goal of the simulation is for the learning process to generate a solution from its fitness feedback and environment rather than by example from human playthrough.
 Thus, the two methods that were chosen incorporate some form of random exploration of the state space to converge on a desired solution.\\
+\section{Genetic approach}
+The genetic approach is inspired by natural selection.
+In each generation, a specific amount of agents is created and each has a distinct neural network(genes).
+These genes can be mutated, recombined, and evaluated for fitness.
+Based on their fitness, individuals are selected for reproduction, which involves combining their genes to create new children.
+The new population then replaces the old one, and the process is repeated until the agents play the game well enough.\\
 
 \section{Deep-Q-Learning Approach}
 The proposed method is based on deep Q-learning, a model-free, bootstrapped, off-policy learning algorithm.
@@ -239,8 +256,13 @@ The current implementation sends the global x and y positions of each limb to th
 We hypothesize that this would give the network enough information to determine how it should move its limbs when in a certain physical configuration.
 
 \section{Future Considerations}
-Some future considerations for the inputs of the neural network would be to send information regarding velocity of the character. This might better inform the network. However, it may not be necessary to input velocity for each individual limb and so an average velocity or velocity of just the center of mass might be sufficient. However, this could only be determined through experimentation.
-\indent Another idea might be to have a memory neuron which would be an output neuron whos output is connected to an input neuron. This could potentially allow for the network to retain some type of memory about its computational state. This may be a helpful addition as the problem being solved is highly temporal and so the ability for the network to retain some kind of information about the previous frame to the next could prove to be beneficial.
+Some future considerations for the inputs of the neural network would be to send information regarding velocity of the character.
+This might better inform the network.
+However, it may not be necessary to input velocity for each individual limb and so an average velocity or velocity of just the center of mass might be sufficient.
+However, this could only be determined through experimentation.
+\indent Another idea might be to have a memory neuron which would be an output neuron whos output is connected to an input neuron.
+This could potentially allow for the network to retain some type of memory about its computational state.
+This may be a helpful addition as the problem being solved is highly temporal and so the ability for the network to retain some kind of information about the previous frame to the next could prove to be beneficial.
 
 
 \end{document}
