@@ -212,10 +212,9 @@ By processing the training data in batches, the neural network can update its we
 Mean Squared Error (MSE) is a loss function that was applied in this project.
 A loss function measures the difference between the estimated action-value function ($Q(s, a)$) and the target action-value function.
 The target action-value function represents the expected return after taking an action in a given state, and it is computed as the sum of the immediate reward and gamma (discount factor) times the maximum value for the next state.
-\\
-\\*
-$target = reward + gamma * maxQ(next state, a')$\\
-\\
+$$
+\textnormal{target} = \textnormal{reward} + \gamma \cdot \textnormal{max}(Q(s', a'))
+$$
 The function produces gradients with respect to the weights of the neural network.
 The gradients are the measures of how much each weight contributes to the overall solution using backpropagation.\\
 
