@@ -254,7 +254,7 @@ The next difficulty we encountered is the structure of the neural network for ag
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=7cm]{avg_fitness.png}
+\includegraphics[width=7cm]{avg_fitness_per_gen.png}
 \end{figure}
 
 \begin{figure}[h]
@@ -264,7 +264,7 @@ The next difficulty we encountered is the structure of the neural network for ag
 
 \section{Future Considerations}
 
-Some future considerations for the inputs of the neural network would be to send information regarding velocity of the character. This might better inform the network. However, it may not be necessary to input velocity for each individual limb and so an average velocity or velocity of just the center of mass might be sufficient. However, this could only be determined through experimentation. Another consideration is that we could have explored a niching evolutionary algorithm like the one described in the article Evolving Controllers for Virtual Creature Locomotion. Such an algorithm could maintain the genetic variation after several generations\cite{sanders_lobb_riddle_2003}.  
+Some future considerations for the inputs of the neural network would be to send information regarding velocity of the character. This might better inform the network. However, it may not be necessary to input velocity for each individual limb and so an average velocity or velocity of just the center of mass might be sufficient. However, this could only be determined through experimentation. Another consideration is that we could have explored a niching evolutionary algorithm like the one described in the article Evolving Controllers for Virtual Creature Locomotion. Such an algorithm could maintain the genetic variation after several generations \cite{sanders_lobb_riddle_2003}.  
 
 \par Another idea might be to have a memory neuron which would be an output neuron whose output is connected to an input neuron. This could potentially allow for the network to retain some type of memory about its computational state. This may be a helpful addition as the problem being solved is highly temporal and so the ability for the network to retain some kind of information about the previous frame to the next could prove to be beneficial.
 
