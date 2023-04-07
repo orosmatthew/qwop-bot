@@ -39,6 +39,35 @@ agg_df = agg_df.drop(['network'], axis = 1)
 
 agg_df.plot.line(xlabel = 'Generation #', ylabel = 'Fitness')
 
+
+agg_df.plot(x = "Runner", y = "Fitness"  )
+'''
+plt.hist(agg_df.fitness,  bins = 100, color = "gold")#agg_df.index,
+plt.ylabel("Runner")
+plt.xlabel("Fitness")
+plt.xticks([-2,-1.5, -1, 0, 0.5, 1, 1.5, 2.0, 2.5, 3.0, 3.5])
+plt.title("Fitness Value Of Each Runner")
+plt.plot(np.unique(agg_df.index),
+         np.poly1d(np.polyfit(agg_df.index, agg_df.fitness, 1))(np.unique(agg_df.index)), 
+         color = "brown")
+plt.show()
+'''
+plt.hist(agg_df.fitness, bins = 10, color = "gold")#agg_df.index,
+plt.ylabel("Runner")
+plt.xlabel("Fitness")
+plt.xticks( [-.115, -0.083, -0.051, -0.019, 0.013, 0.045, .077, .109, .141, .173, .205] )
+plt.title("Histogram Fitness Value Of Each Runner")
+plt.show()
+
+
+bins = [-.115, -0.005, 0.105, 0.215,0.325, 0.435 ]
+bin_df = agg_df.groupby(pd.cut(agg_df['fitness'], bins=bins)).fitness.count()
+bin_df.plot(kind='bar', xlabel = "Fitness Value", ylabel = "Number of Runners",
+            color = "gold", title = "Fitness Values of Runners", rot = 45)
+plt.savefig('testname.png', dpi=1200, bbox_inches ="tight")
+
+
+
 #agg_df.plot.bar(xlabel = 'Generation #', ylabel = 'Fitness') #TO-DO fix or remove
 
 
@@ -50,7 +79,9 @@ avg_df = pd.DataFrame( [ agg_df[0:100].mean() ,agg_df[100:200].mean(),
                         agg_df[800:900].mean(), agg_df[900:1000].mean() ])
 
 
-avg_df.plot.line(xticks = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], xlabel = 'Generation #', ylabel = 'Fitness')
+avg_df.plot.line(title = "Average Fitness For Each Generation", xticks = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+                 xlabel = 'Generation #', ylabel = 'Fitness', color = "orange")
+plt.savefig('testname.png', dpi=1200, bbox_inches ="tight")
 
 avg_df.plot.bar(xlabel = 'Generation #', ylabel = 'Fitness')
 
