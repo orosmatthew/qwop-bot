@@ -34,18 +34,18 @@ class CharacterSimulation:
     def collision_detection(self, arbiter, space, data):
         self.collided = True
 
-    # def step(self, time_step: float) -> None:
-    #     self.space.step(time_step)
-    #     inputs = np.asarray(character_data_list(self.character))
-    #     self.outputs = self.neural_network.feedforward(inputs)
-    #     if self.outputs[0] >= 0.5 > self.outputs[1]:
-    #         self.character_move_legs_q()
-    #     if self.outputs[1] >= 0.5 > self.outputs[0]:
-    #         self.character_move_legs_w()
-    #     if self.outputs[2] >= 0.5 > self.outputs[3]:
-    #         self.character_move_knees_o()
-    #     if self.outputs[3] >= 0.5 > self.outputs[2]:
-    #         self.character_move_knees_p()
+    def step(self, time_step: float) -> None:
+        self.space.step(time_step)
+        inputs = np.asarray(character_data_list(self.character))
+        # self.outputs = self.neural_network.feedforward(inputs)
+        # if self.outputs[0] >= 0.5 > self.outputs[1]:
+        #     self.character_move_legs_q()
+        # if self.outputs[1] >= 0.5 > self.outputs[0]:
+        #     self.character_move_legs_w()
+        # if self.outputs[2] >= 0.5 > self.outputs[3]:
+        #     self.character_move_knees_o()
+        # if self.outputs[3] >= 0.5 > self.outputs[2]:
+        #     self.character_move_knees_p()
 
     # def output_data(self) -> dict:
     #     data = {
