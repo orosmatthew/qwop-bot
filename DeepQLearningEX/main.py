@@ -4,6 +4,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import numpy as np
 import gym
+import matplotlib.pyplot as plt
 
 
 # from simple_dqn_torch_2020 import Agent
@@ -44,7 +45,7 @@ class Agent():
     # epsilon - determines how often does the agent spend exploring its environment vs taking the best known action
     # batch_size - learning from of batch of memory
     def __init__(self, gamma, epsilon, learning_rate, input_dims, batch_size, num_actions,
-                 max_mem_size=100_000, epsilon_end=0.01, epsilon_decrement=5e-4):
+                 max_mem_size=100_000, epsilon_end=0.01, epsilon_decrement=5e-5):
         self.gamma = gamma
         self.epsilon = epsilon
         self.epsilon_min = epsilon_end
@@ -160,25 +161,31 @@ class Agent():
 
 
 if __name__ == "__main__":
-    env = gym.make("LunarLander-v2")
-    agent = Agent(gamma=0.99, epsilon=1.0, batch_size=64, num_actions=4, epsilon_end=0.01, input_dims=[8],
-                  learning_rate=0.0001)
+    env = gym.make("LunarLander-v2", render_mode="human")
+    gym.make("LunarLander-v2", render_mode="human")
+
+    agent = Agent(gamma=0.97, epsilon=1.0, batch_size=64, num_actions=4, epsilon_end=0.01, input_dims=[8],
+                  learning_rate=0.003)
     scores, eps_history = [], []
     n_games = 500
 
     for i in range(n_games):
         score = 0
         done = False
-        observation = env.reset()[0]
+        observation = env.reset()[0] #for qwop it will be the positions of its limbs
 
         while not done:
+
             action = agent.choose_action(observation)
-
+            # what we get for taking this action
             env_step = env.step(action)
-
+            # the next state of the environment after taking the action, represented as an array of numbers
             next_observation = env_step[0]
+            # the reward obtained by the agent for taking the action in the current state
             reward = env_step[1]
+            # boolean variable that indicates whether the episode has terminated or not
             done = env_step[2]
+
             info = env_step[3]
 
             score += reward
@@ -195,5 +202,5 @@ if __name__ == "__main__":
         print('episode ', i, 'score %.2f' % score,
               'average score %.2f' % avg_score,
               'epsilon %.2f' % agent.epsilon)
-
+    env.close()
 
