@@ -2,7 +2,7 @@ import pyray as rl
 import pymunk as pm
 from math import degrees, radians
 
-from util import gen_rect_verts, vec2d_to_arr
+from dql.gym_qwop.envs.util import gen_rect_verts, vec2d_to_arr
 
 
 class PhysicsLimb:
