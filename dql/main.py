@@ -45,11 +45,6 @@ class DeepQNetwork(nn.Module):
         return actions
 
 
-
-
-
-
-
 class Agent:
     # gamma - determines the weighting of future rewards
     # epsilon - determines how often does the agent spend exploring its environment vs taking the best known action
@@ -98,8 +93,9 @@ class Agent:
 
     def choose_action(self, observation: gym.core.ObsType) -> int:
         # if random is greater, then take best known action
-        if np.random.random() > self.epsilon:
-            state: torch.Tensor = torch.tensor([observation]).to(self.Q_eval.device)
+        # if np.random.random() > self.epsilon:
+        if observation.ndim != 0 and np.random.random() > self.epsilon:
+            state: torch.Tensor = torch.tensor(observation, dtype=torch.float32).to(self.Q_eval.device)
             actions: torch.Tensor = self.Q_eval.forward(state)
             action: int = torch.argmax(actions).item()
         # else take a random action from action space
@@ -184,7 +180,7 @@ if __name__ == "__main__":
         score: int = 0
         done: bool = False
         observation: gym.core.ObsType = env.reset()[0]  # for qwop it will be the positions of its limbs
-
+        max_reward = -10000
         while not done:
             action: int = agent.choose_action(observation)
             # what we get for taking this action
@@ -197,7 +193,8 @@ if __name__ == "__main__":
             done: bool = env_step[2]
 
             info: dict = env_step[4]
-
+            if reward > max_reward:
+                max_reward = reward
             score += reward
             agent.store_transition(observation, action, reward, next_observation, done)
             agent.learn()
@@ -209,7 +206,8 @@ if __name__ == "__main__":
         # scores of last 100 games to see if our agent is learning
         avg_score: np.ndarray = np.mean(scores[-100:])
 
-        print('episode ', i, 'score %.2f' % score,
+        print('episode ', i, 'score %.2f' % score, 'max reward %.2f' % max_reward,
               'average score %.2f' % avg_score,
               'epsilon %.2f' % agent.epsilon)
+
     env.close()

@@ -264,8 +264,8 @@ class Character:
         self.right_calf.relax_muscle()
 
 
-def character_data_list(character: Character) -> list[np.float64]:
-    data: list[np.float64] = []
+def character_data_list(character: Character) -> list[float]:
+    data: list[float] = []
     data.extend(vec2d_to_arr(character.torso.body.position))
     data.extend(vec2d_to_arr(character.head.body.position))
     data.extend(vec2d_to_arr(character.right_forearm.body.position))

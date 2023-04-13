@@ -26,7 +26,7 @@ def output_data(gen_count: int, gen_list: list[CharacterSimulation]):
 
 
 def main():
-    rl.set_target_fps(120)
+    # rl.set_target_fps(60)
     camera = rl.Camera2D(rl.Vector2(1280 / 2, 720 / 2), rl.Vector2(0, 0), 0.0, 1.0)
     rl.set_config_flags(rl.ConfigFlags.FLAG_MSAA_4X_HINT)
     rl.init_window(1280, 720, "QWOP-BOT")
@@ -66,7 +66,7 @@ def main():
     sub_start_time = app_time
     gen_count = 1
     subgen_count = 1
-    subgen_num = 2
+    subgen_num = 10
 
 
     last_max = 0
