@@ -21,6 +21,11 @@ class CharacterSimulation:
             (50000, -25),
         ]
 
+        self.sim_time: float = 0.0
+        self.app_time: float = 0.0
+        self.sub_sim_time: float = 0.0
+        self.time_step = 1.0 / 60.0
+
         self.character: Character = Character(self.space, leg_muscle_strength=1_000_000.0, arm_muscle_strength=50_000.0)
 
         ground_body: pm.Body = pm.Body(body_type=pm.Body.STATIC)
@@ -44,7 +49,7 @@ class CharacterSimulation:
 
     def step(self, time_step: float) -> None:
         self.space.step(time_step)
-        inputs = np.asarray(character_data_list(self.character))
+        self.outputs = np.asarray(character_data_list(self.character))
         # self.outputs = self.neural_network.feedforward(inputs)
         # if self.outputs[0] >= 0.5 > self.outputs[1]:
         #     self.character_move_legs_q()
@@ -68,69 +73,64 @@ class CharacterSimulation:
     #     self.neural_network.load_data(data["network"])
 
     def render(self):
-        rl.set_target_fps(60)
-        camera = rl.Camera2D(rl.Vector2(1280 / 2, 720 / 2), rl.Vector2(0, 0), 0.0, 1.0)
-        rl.set_config_flags(rl.ConfigFlags.FLAG_MSAA_4X_HINT)
-        rl.init_window(1280, 720, "QWOP-BOT")
+        print("nothing here")
+        # rl.set_target_fps(60)
+        # camera = rl.Camera2D(rl.Vector2(1280 / 2, 720 / 2), rl.Vector2(0, 0), 0.0, 1.0)
+        # rl.set_config_flags(rl.ConfigFlags.FLAG_MSAA_4X_HINT)
+        # rl.init_window(1280, 720, "QWOP-BOT")
+        #
+        # ground_body: pm.Body = pm.Body(body_type=pm.Body.STATIC)
+        # ground_body.position = self.ground_position
+        # ground_shape = pm.Poly(ground_body, self.ground_poly)
+        # ground_shape.friction = 0.8
+        # ground_shape.collision_type = pm.Body.STATIC
+        # ground_shape.collision_type = 2
+        #
+        # #while not rl.window_should_close():
+        # rl.begin_drawing()
+        # rl.begin_mode_2d(camera)
+        #
+        # # self.step(self.time_step)
+        # # self.sim_time += self.time_step
+        # # self.app_time += self.time_step
+        #
+        # rl.clear_background(rl.BLACK)
+        # self.draw_character()
+        # camera.target = self.character_position()
+        #
+        # rl.draw_rectangle_pro(
+        #     rl.Rectangle(round(ground_body.position.x), round(-ground_body.position.y), 50000, 50),
+        #     rl.Vector2(50000 / 2, 50 / 2), 0.0, rl.GREEN)
+        #
+        # if rl.is_key_down(rl.KeyboardKey.KEY_Q):
+        #     self.character_move_legs_q()
+        # elif rl.is_key_down(rl.KeyboardKey.KEY_W):
+        #     self.character_move_legs_w()
+        # if rl.is_key_down(rl.KeyboardKey.KEY_O):
+        #     self.character_move_knees_o()
+        # elif rl.is_key_down(rl.KeyboardKey.KEY_P):
+        #     self.character_move_knees_p()
+        #
+        # rl.end_mode_2d()
+        #
+        # max_x = -float('inf')
+        #
+        # self.handler.separate = self.collision_detection
+        # if self.character_position().x > max_x:
+        #     max_x = self.character_position().x
+        #
+        # rl.draw_text("Max Distance: " + str(round(max_x, 0) / 1000.0) + "m", 20, 0, 50,
+        #              rl.Color(153, 204, 255, 255))
 
-        ground_body: pm.Body = pm.Body(body_type=pm.Body.STATIC)
-        ground_body.position = self.ground_position
-        ground_shape = pm.Poly(ground_body, self.ground_poly)
-        ground_shape.friction = 0.8
-        ground_shape.collision_type = pm.Body.STATIC
-        ground_shape.collision_type = 2
-
-        sim_time: float = 0.0
-        app_time: float = 0.0
-        sub_sim_time: float = 0.0
-        time_step = 1.0 / 60.0
-
-        sim = CharacterSimulation()
-
-        while not rl.window_should_close():
-            rl.begin_drawing()
-            rl.begin_mode_2d(camera)
-
-            sim.step(time_step)
-            sim_time += time_step
-            app_time += time_step
-
-            rl.clear_background(rl.BLACK)
-            sim.draw_character()
-            camera.target = sim.character_position()
-
-            rl.draw_rectangle_pro(
-                rl.Rectangle(round(ground_body.position.x), round(-ground_body.position.y), 50000, 50),
-                rl.Vector2(50000 / 2, 50 / 2), 0.0, rl.GREEN)
-
-            if rl.is_key_down(rl.KeyboardKey.KEY_Q):
-                sim.character_move_legs_q()
-            elif rl.is_key_down(rl.KeyboardKey.KEY_W):
-                sim.character_move_legs_w()
-            if rl.is_key_down(rl.KeyboardKey.KEY_O):
-                sim.character_move_knees_o()
-            elif rl.is_key_down(rl.KeyboardKey.KEY_P):
-                sim.character_move_knees_p()
-
-            rl.end_mode_2d()
-
-            max_x = -float('inf')
-
-            sim.handler.separate = sim.collision_detection
-            if sim.character_position().x > max_x:
-                max_x = sim.character_position().x
-
-            rl.draw_text("Max Distance: " + str(round(max_x, 0) / 1000.0) + "m", 20, 0, 50,
-                         rl.Color(153, 204, 255, 255))
-
-            rl.end_drawing()
-        rl.close_window()
+        # rl.end_drawing()
+        # rl.close_window()
     def character_position(self) -> rl.Vector2:
         return rl.Vector2(self.character.torso.body.position.x, -self.character.torso.body.position.y + 100)
 
     def action(self, action):
         if action == 0:
             self.character.move_legs_q()
+            self.step(self.time_step)
         if action == 1:
             self.character.move_legs_w()
         if action == 2:

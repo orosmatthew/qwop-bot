@@ -36,7 +36,6 @@ class DeepQNetwork(nn.Module):
     def forward(self, state: torch.Tensor) -> torch.Tensor:
         # passing the input to the first layer
         x: torch.Tensor = functional.relu(self.fc1(state))
-
         # passing the output from first layer to the second layer
         x: torch.Tensor = functional.relu(self.fc2(x))
 
@@ -44,6 +43,11 @@ class DeepQNetwork(nn.Module):
         actions: torch.Tensor = functional.relu(self.fc3(x))
 
         return actions
+
+
+
+
+
 
 
 class Agent:
@@ -84,7 +88,7 @@ class Agent:
     def store_transition(self, state: gym.core.ObsType, action: int, reward, new_state: gym.core.ObsType,
                          done: bool) -> None:
         index: int = self.mem_cntr % self.mem_size
-        self.state_memory[index] = state[0]
+        self.state_memory[index] = state
         self.new_state_memory[index] = new_state
         self.reward_memory[index] = reward
         self.action_memory[index] = action
@@ -157,7 +161,6 @@ class Agent:
         loss: torch.Tensor = self.Q_eval.loss(q_target, q_eval).to(self.Q_eval.device)
 
         torch.autograd.set_detect_anomaly(True)
-        # TODO: fix this piece of pie
         # measures how much each connections contributes to the overall solution using back propagation
         loss.backward()
 
@@ -168,6 +171,9 @@ class Agent:
 
 if __name__ == "__main__":
     env: gym.Env = gym.make("QWOP")
+    # env.reset()
+    # env.render()
+
     agent: Agent = Agent(gamma=0.97, epsilon=1.0, batch_size=64, num_actions=4, epsilon_end=0.01, input_dims=[24],
                          learning_rate=0.003)
     scores: list[int] = []
@@ -190,7 +196,7 @@ if __name__ == "__main__":
             # boolean variable that indicates whether the episode has terminated or not
             done: bool = env_step[2]
 
-            info: bool = env_step[3]
+            info: dict = env_step[4]
 
             score += reward
             agent.store_transition(observation, action, reward, next_observation, done)
