@@ -167,8 +167,8 @@ class Agent:
 
 if __name__ == "__main__":
     env: gym.Env = gym.make("QWOP")
-    # env.reset()
-    # env.render()
+    env.reset()
+    env.render()
 
     agent: Agent = Agent(gamma=0.97, epsilon=1.0, batch_size=64, num_actions=4, epsilon_end=0.01, input_dims=[24],
                          learning_rate=0.003)
@@ -199,6 +199,8 @@ if __name__ == "__main__":
             agent.store_transition(observation, action, reward, next_observation, done)
             agent.learn()
             observation = next_observation
+
+
 
         scores.append(score)
         eps_history.append(agent.epsilon)

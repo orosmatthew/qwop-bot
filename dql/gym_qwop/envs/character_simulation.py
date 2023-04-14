@@ -8,6 +8,8 @@ from dql.gym_qwop.envs.character import Character, character_data_list
 
 class CharacterSimulation:
     def __init__(self):
+        self.camera = rl.Camera2D(rl.Vector2(1280 / 2, 720 / 2), rl.Vector2(0, 0), 0.0, 1.0)
+
         self.collided = False
         self.space: pm.Space = pm.Space()
         self.space.gravity = (0, -900.0)
@@ -27,13 +29,13 @@ class CharacterSimulation:
 
         self.character: Character = Character(self.space, leg_muscle_strength=1_000_000.0, arm_muscle_strength=50_000.0)
 
-        ground_body: pm.Body = pm.Body(body_type=pm.Body.STATIC)
-        ground_body.position = self.ground_position
-        ground_shape = pm.Poly(ground_body, self.ground_poly)
-        ground_shape.friction = 0.8
-        ground_shape.collision_type = pm.Body.STATIC
+        self.ground_body: pm.Body = pm.Body(body_type=pm.Body.STATIC)
+        self.ground_body.position = self.ground_position
+        self.ground_shape = pm.Poly(self.ground_body, self.ground_poly)
+        self.ground_shape.friction = 0.8
+        self.ground_shape.collision_type = 2
 
-        self.space.add(ground_body, ground_shape)
+        self.space.add(self.ground_body, self.ground_shape)
 
         self.outputs = np.asarray(character_data_list(self.character))
 
@@ -57,6 +59,9 @@ class CharacterSimulation:
         self.outputs = np.asarray(character_data_list(self.character))
         self.output_list = character_data_list(self.character)
         self.fitness = round(self.character_position().x, 0) / 1000.0
+
+        self.sim_time += self.time_step
+
         # self.outputs = self.neural_network.feedforward(inputs)
         # if self.outputs[0] >= 0.5 > self.outputs[1]:
         #     self.character_move_legs_q()
@@ -67,17 +72,17 @@ class CharacterSimulation:
         # if self.outputs[3] >= 0.5 > self.outputs[2]:
         #     self.character_move_knees_p()
 
-    # def output_data(self) -> dict:
-    #     data = {
-    #         "color": (self.color.r, self.color.g, self.color.b, self.color.a),
-    #         "network": self.neural_network.output_data(),
-    #         "fitness": self.fitness
-    #     }
-    #     return data
+    def output_data(self) -> dict:
+        data = {
+            "color": (self.color.r, self.color.g, self.color.b, self.color.a),
+            "network": self.neural_network.output_data(),
+            "fitness": self.fitness
+        }
+        return data
 
-    # def load_data(self, data: dict) -> None:
-    #     self.color = rl.Color(data["color"][0], data["color"][1], data["color"][2], data["color"][3])
-    #     self.neural_network.load_data(data["network"])
+    def load_data(self, data: dict) -> None:
+        self.color = rl.Color(data["color"][0], data["color"][1], data["color"][2], data["color"][3])
+        self.neural_network.load_data(data["network"])
 
     def init_render(self):
         rl.set_target_fps(60)
@@ -93,48 +98,39 @@ class CharacterSimulation:
         self.ground_shape.collision_type = 2
 
     def render(self):
-        while not rl.window_should_close():
-            rl.begin_drawing()
-            rl.begin_mode_2d(self.camera)
+        rl.set_target_fps(60)
+        rl.set_config_flags(rl.ConfigFlags.FLAG_MSAA_4X_HINT)
+        rl.init_window(1280, 720, "QWOP-BOT")
 
-            self.sim_time += self.time_step
-            self.app_time += self.time_step
+    def step_render(self, ):
+        rl.begin_drawing()
+        rl.begin_mode_2d(self.camera)
 
-            rl.clear_background(rl.BLACK)
-            self.draw_character()
+        rl.clear_background(rl.BLACK)
+
+        self.draw_character()
+
+        rl.draw_rectangle_pro(
+            rl.Rectangle(round(self.ground_body.position.x), round(-self.ground_body.position.y), 50000, 50),
+            rl.Vector2(50000 / 2, 50 / 2), 0.0, rl.GREEN)
+
+        rl.end_mode_2d()
+
+        max_x = -float('inf')
+
+        self.handler.separate = self.collision_detection
+        if self.character_position().x > max_x:
+            max_x = self.character_position().x
             self.camera.target = self.character_position()
 
-            rl.draw_rectangle_pro(
-                rl.Rectangle(round(self.ground_body.position.x), round(-self.ground_body.position.y), 50000, 50),
-                rl.Vector2(50000 / 2, 50 / 2), 0.0, rl.GREEN)
+        rl.draw_text("Max Distance: " + str(round(max_x, 0) / 1000.0) + "m", 20, 0, 50,
+                     rl.Color(153, 204, 255, 255))
 
-            if rl.is_key_down(rl.KeyboardKey.KEY_Q):
-                self.character_move_legs_q()
-            elif rl.is_key_down(rl.KeyboardKey.KEY_W):
-                self.character_move_legs_w()
-            if rl.is_key_down(rl.KeyboardKey.KEY_O):
-                self.character_move_knees_o()
-            elif rl.is_key_down(rl.KeyboardKey.KEY_P):
-                self.character_move_knees_p()
-
-            rl.end_mode_2d()
-
-            max_x = -float('inf')
-
-            self.handler.separate = self.collision_detection
-            if self.character_position().x > max_x:
-                max_x = self.character_position().x
-
-            rl.draw_text("Max Distance: " + str(round(max_x, 0) / 1000.0) + "m", 20, 0, 50,
-                         rl.Color(153, 204, 255, 255))
-
-            rl.end_drawing()
-            rl.close_window()
+        rl.end_drawing()
 
     def action(self, action):
         if action == 0:
             self.character.move_legs_q()
-            self.step(self.time_step)
         if action == 1:
             self.character.move_legs_w()
         if action == 2:
@@ -156,3 +152,5 @@ class CharacterSimulation:
 
     def character_move_knees_p(self) -> None:
         self.character.move_knees_p()
+
+

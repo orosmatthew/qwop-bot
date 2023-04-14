@@ -3,6 +3,7 @@ from gym import spaces
 import numpy as np
 from dql.gym_qwop.envs import character_simulation
 import torch
+import pyray as rl
 
 
 class CustomEnv(gym.Env):
@@ -11,6 +12,7 @@ class CustomEnv(gym.Env):
         self.action_space = spaces.Discrete(4)
         self.observation_space = spaces.Box(low=-np.inf, high=np.inf, dtype=np.float32)
         self.step_count = 0
+        self.rendered = False
 
     def reset(self, **kwargs):
         self.step_count = 0
@@ -20,14 +22,15 @@ class CustomEnv(gym.Env):
         return observation
 
     def step(self, action):
-        # self.pygame.step(self.pygame.time_step)
-        # self.pygame.sim_time += self.pygame.time_step
-        # self.pygame.app_time += self.pygame.time_step
+
         self.step_count += 1
         observation = torch.tensor([*self.pygame.output_list], dtype=torch.float32)
 
         self.pygame.action(action)
         self.pygame.step(1.0 / 60.0)
+
+        if self.rendered:
+            self.pygame.step_render()
 
         reward: float = self.pygame.fitness
         # done will be connected to the collusion
@@ -36,6 +39,7 @@ class CustomEnv(gym.Env):
 
     def render(self, mode='human'):
         self.pygame.render()
+        self.rendered = True
 
     def close(self):
         pass
