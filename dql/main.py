@@ -51,7 +51,7 @@ class Agent:
     # batch_size - learning from of batch of memory
     def __init__(self, gamma: float, epsilon: float, learning_rate: float, input_dims: list[int], batch_size: int,
                  num_actions: int, max_mem_size: int = 100_000, epsilon_end: float = 0.01,
-                 epsilon_decrement: float = 5e-5):
+                 epsilon_decrement: float = 0.00001):
         self.gamma: float = gamma
         self.epsilon: float = epsilon
         self.epsilon_min: float = epsilon_end
@@ -170,8 +170,8 @@ if __name__ == "__main__":
     env.reset()
     env.render()
 
-    agent: Agent = Agent(gamma=0.97, epsilon=1.0, batch_size=64, num_actions=4, epsilon_end=0.01, input_dims=[24],
-                         learning_rate=0.003)
+    agent: Agent = Agent(gamma=0.99, epsilon=1.0, batch_size=64, num_actions=4, epsilon_end=0.01, input_dims=[24],
+                         learning_rate=0.0003)
     scores: list[int] = []
     eps_history: list[float] = []
     n_games: int = 500

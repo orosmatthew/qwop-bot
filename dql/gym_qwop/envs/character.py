@@ -266,16 +266,18 @@ class Character:
 
 def character_data_list(character: Character) -> list[float]:
     data: list[float] = []
-    data.extend(vec2d_to_arr(character.torso.body.position))
-    data.extend(vec2d_to_arr(character.head.body.position))
-    data.extend(vec2d_to_arr(character.right_forearm.body.position))
-    data.extend(vec2d_to_arr(character.right_biceps.limb.body.position))
-    data.extend(vec2d_to_arr(character.left_forearm.body.position))
-    data.extend(vec2d_to_arr(character.left_biceps.limb.body.position))
-    data.extend(vec2d_to_arr(character.right_leg.limb.body.position))
-    data.extend(vec2d_to_arr(character.right_calf.limb.body.position))
-    data.extend(vec2d_to_arr(character.right_foot.body.position))
-    data.extend(vec2d_to_arr(character.left_leg.limb.body.position))
-    data.extend(vec2d_to_arr(character.left_calf.limb.body.position))
-    data.extend(vec2d_to_arr(character.left_foot.body.position))
+    # relative x & y positions of limbs relative to the body
+    # just y pos of the body
+    data.extend((character.torso.body.position.x - character.torso.body.position.x, character.torso.body.position.y))
+    data.extend((character.head.body.position.x - character.torso.body.position.x, character.head.body.position.y - character.torso.body.position.y))
+    data.extend((character.right_forearm.body.position.x - character.torso.body.position.x, character.right_forearm.body.position.y - character.torso.body.position.y))
+    data.extend((character.right_biceps.limb.body.position.x - character.torso.body.position.x, character.right_biceps.limb.body.position.y - character.torso.body.position.y))
+    data.extend((character.left_forearm.body.position.x - character.torso.body.position.x, character.left_forearm.body.position.y - character.torso.body.position.y))
+    data.extend((character.left_biceps.limb.body.position.x - character.torso.body.position.x, character.left_biceps.limb.body.position.y - character.torso.body.position.y))
+    data.extend((character.right_leg.limb.body.position.x - character.torso.body.position.x, character.right_leg.limb.body.position.y - character.torso.body.position.y))
+    data.extend((character.right_calf.limb.body.position.x - character.torso.body.position.x, character.right_calf.limb.body.position.y - character.torso.body.position.y))
+    data.extend((character.right_foot.body.position.x - character.torso.body.position.x, character.right_foot.body.position.y - character.torso.body.position.y))
+    data.extend((character.left_leg.limb.body.position.x - character.torso.body.position.x, character.left_leg.limb.body.position.y - character.torso.body.position.y))
+    data.extend((character.left_calf.limb.body.position.x - character.torso.body.position.x, character.left_calf.limb.body.position.y - character.torso.body.position.y))
+    data.extend((character.left_foot.body.position.x - character.torso.body.position.x, character.left_foot.body.position.y - character.torso.body.position.y))
     return data
