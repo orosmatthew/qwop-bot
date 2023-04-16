@@ -27,7 +27,7 @@ class CharacterSimulation:
         self.sub_sim_time: float = 0.0
         self.time_step = 1.0 / 60.0
 
-        self.character: Character = Character(self.space, leg_muscle_strength=1_000_000.0, arm_muscle_strength=50_000.0)
+        self.character: Character = Character(self.space, leg_muscle_strength=1_150_000.0, arm_muscle_strength=50_000.0)
 
         self.ground_body: pm.Body = pm.Body(body_type=pm.Body.STATIC)
         self.ground_body.position = self.ground_position
@@ -41,7 +41,9 @@ class CharacterSimulation:
 
         self.output_list = character_data_list(self.character)
 
-        self.fitness = 0.0
+        self.fitness = 10.0
+
+        self.max_dist = 0.0
 
         self.color = rl.color_from_hsv(random.uniform(0, 360), 0.7, 0.9)
 
@@ -54,13 +56,16 @@ class CharacterSimulation:
         return rl.Vector2(self.character.torso.body.position.x, -self.character.torso.body.position.y + 100)
 
     def step(self, time_step: float) -> None:
+        self.fitness -= 0.01
         self.character.prev_torso_pos = self.character.torso.body.position
         self.character.prev_left_foot_pos = self.character.left_foot.body.position
         self.character.prev_right_foot_pos = self.character.right_foot.body.position
         self.space.step(time_step)
         self.outputs = np.asarray(character_data_list(self.character))
         self.output_list = character_data_list(self.character)
-        self.fitness = round(self.character_position().x, 0) / 1000.0
+        if self.character_position().x > self.max_dist:
+            self.fitness += (self.character_position().x - self.max_dist) / 50.0
+            self.max_dist = self.character_position().x
 
         self.sim_time += self.time_step
 
@@ -123,14 +128,12 @@ class CharacterSimulation:
 
         rl.end_mode_2d()
 
-        max_x = -float('inf')
+        self.camera.target = self.character_position()
 
-        self.handler.separate = self.collision_detection
-        if self.character_position().x > max_x:
-            max_x = self.character_position().x
-            self.camera.target = self.character_position()
+        rl.draw_text("Distance: " + str(round(self.character_position().x, 0) / 1000.0) + "m", 20, 0, 50,
+                     rl.Color(153, 204, 255, 255))
 
-        rl.draw_text("Distance: " + str(round(max_x, 0) / 1000.0) + "m", 20, 0, 50,
+        rl.draw_text("Fitness: " + str(round(self.fitness, 3)), 20, 50, 50,
                      rl.Color(153, 204, 255, 255))
 
         rl.end_drawing()
@@ -138,11 +141,23 @@ class CharacterSimulation:
     def action(self, action):
         if action == 0:
             self.character.move_legs_q()
-        if action == 1:
-            self.character.move_legs_w()
-        if action == 2:
+        elif action == 1:
+            self.character.move_legs_q()
             self.character.move_knees_o()
-        if action == 3:
+        elif action == 2:
+            self.character.move_legs_q()
+            self.character.move_knees_p()
+        elif action == 3:
+            self.character.move_legs_w()
+        elif action == 4:
+            self.character.move_legs_w()
+            self.character.move_knees_o()
+        elif action == 5:
+            self.character.move_legs_w()
+            self.character.move_knees_p()
+        elif action == 6:
+            self.character.move_knees_o()
+        elif action == 7:
             self.character.move_knees_p()
 
     def draw_character(self) -> None:

@@ -161,8 +161,8 @@ class Agent:
         loss.backward()
 
         self.Q_eval.optimizer.step()
-
-        self.epsilon = self.epsilon - self.epsilon_dec if self.epsilon > self.epsilon_min else self.epsilon_min
+        self.epsilon -= self.epsilon_dec
+        # self.epsilon = self.epsilon - self.epsilon_dec if self.epsilon > self.epsilon_min else self.epsilon_min
 
 
 if __name__ == "__main__":
@@ -170,8 +170,8 @@ if __name__ == "__main__":
     env.reset()
     env.render()
 
-    agent: Agent = Agent(gamma=0.99, epsilon=1.0, batch_size=64, num_actions=5, epsilon_end=0.01, input_dims=[30],
-                         learning_rate=0.0003)
+    agent: Agent = Agent(gamma=0.99, epsilon=1.0, batch_size=64, num_actions=9, epsilon_end=0.01, input_dims=[31],
+                         learning_rate=0.001, epsilon_decrement=0.000001)
     scores: list[int] = []
     eps_history: list[float] = []
     n_games: int = 500
@@ -199,8 +199,6 @@ if __name__ == "__main__":
             agent.store_transition(observation, action, reward, next_observation, done)
             agent.learn()
             observation = next_observation
-
-
 
         scores.append(score)
         eps_history.append(agent.epsilon)
