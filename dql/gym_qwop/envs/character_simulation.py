@@ -47,7 +47,6 @@ class CharacterSimulation:
 
         self.handler = self.space.add_collision_handler(1, 2)
 
-
     def collision_detection(self, arbiter, space, data):
         self.collided = True
 
@@ -55,6 +54,9 @@ class CharacterSimulation:
         return rl.Vector2(self.character.torso.body.position.x, -self.character.torso.body.position.y + 100)
 
     def step(self, time_step: float) -> None:
+        self.character.prev_torso_pos = self.character.torso.body.position
+        self.character.prev_left_foot_pos = self.character.left_foot.body.position
+        self.character.prev_right_foot_pos = self.character.right_foot.body.position
         self.space.step(time_step)
         self.outputs = np.asarray(character_data_list(self.character))
         self.output_list = character_data_list(self.character)
@@ -72,20 +74,20 @@ class CharacterSimulation:
         # if self.outputs[3] >= 0.5 > self.outputs[2]:
         #     self.character_move_knees_p()
 
-    def output_data(self) -> dict:
-        data = {
-            "color": (self.color.r, self.color.g, self.color.b, self.color.a),
-            "network": self.neural_network.output_data(),
-            "fitness": self.fitness
-        }
-        return data
-
-    def load_data(self, data: dict) -> None:
-        self.color = rl.Color(data["color"][0], data["color"][1], data["color"][2], data["color"][3])
-        self.neural_network.load_data(data["network"])
+    # def output_data(self) -> dict:
+    #     data = {
+    #         "color": (self.color.r, self.color.g, self.color.b, self.color.a),
+    #         "network": self.neural_network.output_data(),
+    #         "fitness": self.fitness
+    #     }
+    #     return data
+    #
+    # def load_data(self, data: dict) -> None:
+    #     self.color = rl.Color(data["color"][0], data["color"][1], data["color"][2], data["color"][3])
+    #     self.neural_network.load_data(data["network"])
 
     def init_render(self):
-        rl.set_target_fps(60)
+        # rl.set_target_fps(60)
         self.camera = rl.Camera2D(rl.Vector2(1280 / 2, 720 / 2), rl.Vector2(0, 0), 0.0, 1.0)
         rl.set_config_flags(rl.ConfigFlags.FLAG_MSAA_4X_HINT)
         rl.init_window(1280, 720, "QWOP-BOT")
@@ -98,7 +100,7 @@ class CharacterSimulation:
         self.ground_shape.collision_type = 2
 
     def render(self):
-        rl.set_target_fps(60)
+        rl.set_target_fps(120)
         rl.set_config_flags(rl.ConfigFlags.FLAG_MSAA_4X_HINT)
         rl.init_window(1280, 720, "QWOP-BOT")
 
@@ -114,6 +116,11 @@ class CharacterSimulation:
             rl.Rectangle(round(self.ground_body.position.x), round(-self.ground_body.position.y), 50000, 50),
             rl.Vector2(50000 / 2, 50 / 2), 0.0, rl.GREEN)
 
+        for i in range(100):
+            rl.draw_rectangle_pro(
+                rl.Rectangle(round(self.ground_body.position.x), round(-self.ground_body.position.y), 10, 50),
+                rl.Vector2(10 / 2 - i * 100, 50 / 2), 0.0, rl.GRAY)
+
         rl.end_mode_2d()
 
         max_x = -float('inf')
@@ -123,7 +130,7 @@ class CharacterSimulation:
             max_x = self.character_position().x
             self.camera.target = self.character_position()
 
-        rl.draw_text("Max Distance: " + str(round(max_x, 0) / 1000.0) + "m", 20, 0, 50,
+        rl.draw_text("Distance: " + str(round(max_x, 0) / 1000.0) + "m", 20, 0, 50,
                      rl.Color(153, 204, 255, 255))
 
         rl.end_drawing()
@@ -152,5 +159,3 @@ class CharacterSimulation:
 
     def character_move_knees_p(self) -> None:
         self.character.move_knees_p()
-
-

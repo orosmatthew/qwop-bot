@@ -170,7 +170,7 @@ if __name__ == "__main__":
     env.reset()
     env.render()
 
-    agent: Agent = Agent(gamma=0.99, epsilon=1.0, batch_size=64, num_actions=4, epsilon_end=0.01, input_dims=[24],
+    agent: Agent = Agent(gamma=0.99, epsilon=1.0, batch_size=64, num_actions=5, epsilon_end=0.01, input_dims=[30],
                          learning_rate=0.0003)
     scores: list[int] = []
     eps_history: list[float] = []
