@@ -232,19 +232,7 @@ if __name__ == "__main__":
 
         # scores of last 100 games to see if our agent is learning
         avg_score: np.ndarray = np.mean(scores[-100:])
-        '''
-      #  if rl.is_key_pressed(rl.KeyboardKey.KEY_S):
-        data = []
-        data.append(scores)
-                
-        for sim in scores:
-                # data.append(sim.output_data())
-                print(scores)
-                print(sim)
-        
-        with open("network.json", "w") as file:
-                json.dump(data, file)
-        '''
+
         print('episode ', i, 'score %.2f' % score, 'max reward %.2f' % max_reward,
               'average score %.2f' % avg_score,
               'epsilon %.2f' % agent.epsilon)
