@@ -191,21 +191,14 @@ if __name__ == "__main__":
     def output_data(ep_list: list[float]):
         if not os.path.exists('out'):
             os.mkdir('out')
-        if not os.path.exists(os.path.join('out', str(ep_list[0]))):
-            print("making directory")
-            print(os.path.join('out', str(ep_list[0]) ) )
-            os.mkdir(os.path.join('out', str(ep_list[0])))
+        if not os.path.exists(os.path.join('out', str(dir_count))):
+            os.mkdir(os.path.join('out', str(dir_count)))
         data_out = dict.fromkeys(["episode", "score", "max_reward", "avg_score", "epsilon"])
         i = 0
         for val in data_out:
-            print(i)
-            print(val)
             data_out[val] = ep_list[i]
-            print(data_out[val])
             i += 1
-        with open(os.path.join('out', str(dir_count), str(ep_list[0]) + ".json"), "w") as f:#str(dir_count)
-            print("dumping:")
-            print(str(dir_count))
+        with open(os.path.join('out', str(dir_count), str(ep_list[0]) + ".json"), "w") as f:
             json.dump(data_out, f)
 
 
