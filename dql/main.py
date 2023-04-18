@@ -115,7 +115,6 @@ class Agent:
 
         return action
 
-
     def learn(self) -> None:
         # here we can either choose if the agent will start learning when the whole memory is filled up
         # or when a memory batch is filled up
@@ -173,8 +172,8 @@ class Agent:
         loss.backward()
 
         self.Q_eval.optimizer.step()
-
-        self.epsilon = self.epsilon - self.epsilon_dec if self.epsilon > self.epsilon_min else self.epsilon_min
+        self.epsilon -= self.epsilon_dec
+        # self.epsilon = self.epsilon - self.epsilon_dec if self.epsilon > self.epsilon_min else self.epsilon_min
 
 
 if __name__ == "__main__":
@@ -182,8 +181,8 @@ if __name__ == "__main__":
     env.reset()
     env.render()
 
-    agent: Agent = Agent(gamma=0.99, epsilon=1.0, batch_size=64, num_actions=4, epsilon_end=0.01, input_dims=[24],
-                         learning_rate=0.0003)
+    agent: Agent = Agent(gamma=0.99, epsilon=1.0, batch_size=64, num_actions=9, epsilon_end=0.01, input_dims=[31],
+                         learning_rate=0.001, epsilon_decrement=0.000001)
     scores: list[int] = []
     eps_history: list[float] = []
     n_games: int = 500
@@ -234,26 +233,12 @@ if __name__ == "__main__":
             agent.learn()
             observation = next_observation
 
-
-
         scores.append(score)
         eps_history.append(agent.epsilon)
 
         # scores of last 100 games to see if our agent is learning
         avg_score: np.ndarray = np.mean(scores[-100:])
-        '''
-      #  if rl.is_key_pressed(rl.KeyboardKey.KEY_S):
-        data = []
-        data.append(scores)
-                
-        for sim in scores:
-                # data.append(sim.output_data())
-                print(scores)
-                print(sim)
-        
-        with open("network.json", "w") as file:
-                json.dump(data, file)
-        '''
+
         print('episode ', i, 'score %.2f' % score, 'max reward %.2f' % max_reward,
               'average score %.2f' % avg_score,
               'epsilon %.2f' % agent.epsilon)

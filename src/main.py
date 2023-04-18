@@ -1,7 +1,6 @@
 import pyray as rl
 import pymunk as pm
 import json
-import time
 import os
 
 from character_simulation import CharacterSimulation
@@ -22,22 +21,22 @@ def output_data(gen_count: int, gen_list: list[CharacterSimulation]):
     data: list[dict] = []
     for sim in gen_list:
         data.append(sim.output_data())
-    with open(os.path.join('out', str(dir_count), str(gen_count)), "w") as file:
+    with open(os.path.join('out', str(dir_count), str(gen_count) + ".json"), "w") as file:
         json.dump(data, file)
 
 
 def main():
-    rl.set_target_fps(60)
+    # rl.set_target_fps(60)
     camera = rl.Camera2D(rl.Vector2(1280 / 2, 720 / 2), rl.Vector2(0, 0), 0.0, 1.0)
     rl.set_config_flags(rl.ConfigFlags.FLAG_MSAA_4X_HINT)
     rl.init_window(1280, 720, "QWOP-BOT")
 
-    ground_position = 300, 150
+    ground_position = 50, 150
     ground_poly = [
-        (-500, -25),
-        (-500, 25),
-        (500, 25),
-        (500, -25),
+        (-50000, -25),
+        (-50000, 25),
+        (50000, 25),
+        (50000, -25),
     ]
 
     ground_body: pm.Body = pm.Body(body_type=pm.Body.STATIC)
@@ -45,11 +44,13 @@ def main():
     ground_shape = pm.Poly(ground_body, ground_poly)
     ground_shape.friction = 0.8
     ground_shape.collision_type = pm.Body.STATIC
+    ground_shape.collision_type = 2
 
     # create 100 random characters for the 1st generation
     sim_list: list[CharacterSimulation] = [CharacterSimulation(ground_position, ground_poly) for _ in range(100)]
 
     sim_time: float = 0.0
+    app_time: float = 0.0
     sub_sim_time: float = 0.0
     time_step = 1.0 / 60.0
 
@@ -62,9 +63,17 @@ def main():
     start_subgen: int = 0
     end_subgen: int = 10
 
-    sub_start_time = time.time()
+    sub_start_time = app_time
     gen_count = 1
     subgen_count = 1
+    subgen_num = 10
+
+
+    last_max = 0
+    last_max_time = 0
+    #time given for sims to move past max distance after subgen_duration time
+    subgen_duration_bonus = 3
+
 
     while not rl.window_should_close():
         if rl.is_key_pressed(rl.KeyboardKey.KEY_S):
@@ -92,6 +101,7 @@ def main():
                    start_subgen:end_subgen]:  # [start_subgen:end_subgen] so only work with 10 characters at a time
             sim.step(time_step)
         sim_time += time_step
+        app_time += time_step
         sub_sim_time += time_step
 
         rl.begin_drawing()
@@ -103,8 +113,8 @@ def main():
                    start_subgen:end_subgen]:  # [start_subgen:end_subgen] so only work with 10 characters at a time
             sim.draw_character()
 
-        rl.draw_rectangle_pro(rl.Rectangle(round(ground_body.position.x), round(-ground_body.position.y), 1000, 50),
-                              rl.Vector2(1000 / 2, 50 / 2), 0.0, rl.GREEN)
+        rl.draw_rectangle_pro(rl.Rectangle(round(ground_body.position.x), round(-ground_body.position.y), 50000, 50),
+                              rl.Vector2(50000 / 2, 50 / 2), 0.0, rl.GREEN)
 
         # if rl.is_key_down(rl.KeyboardKey.KEY_Q):
         #     sim.character_move_legs_q()
@@ -118,35 +128,23 @@ def main():
 
         rl.end_mode_2d()
 
-        # def on_collision(arbiter, space, character):
-        #     # Get the shapes that collided
-        #     shape_1, shape_2 = arbiter.shapes
-        #     list_of_shapes = [character.head.shape,
-        #                       character.torso.shape,
-        #                       character.right_biceps.limb.shape,
-        #                       character.right_forearm.shape,
-        #                       character.left_biceps.limb.shape,
-        #                       character.left_forearm.shape]
-
-        #     # Check if the colliding shapes belong to the head and floor
-        #     if (shape_1 in list_of_shapes and shape_2 == ground_shape) or (
-        #             shape_1 == ground_shape and shape_2 in list_of_shapes):
-        #         print("touched")
-        #         return True
-        #     return False
-
         max_x = -float('inf')
         for sim in sim_list[
                    start_subgen:end_subgen]:  # [start_subgen:end_subgen] so only work with 10 characters at a time
+            sim.handler.separate = sim.collision_detection
             if sim.character_position().x > max_x:
                 max_x = sim.character_position().x
                 camera.target = sim.character_position()
+            if max_x > last_max:
+                last_max = max_x
+                last_max_time = app_time
 
-        elapsed_subgen_time = time.time() - sub_start_time
+        elapsed_subgen_time = app_time - sub_start_time
+        elapsed_last_max_time = app_time - last_max_time
 
         # reset the generation
         # simulate another generation after all batches were simulated
-        if subgen_count > 10:
+        if subgen_count > subgen_num:
             for sim in sim_list:
                 sim.fitness = round(sim.character_position().x, 0) / 1000.0
 
@@ -158,9 +156,11 @@ def main():
             half_index = len(generation_list) // 2
 
             # contains top 50% performers of this generation
-            generation_list = generation_list[half_index:]
+            generation_list = generation_list[half_index:len(generation_list)]
 
-            children_list = make_next_gen(generation_list)
+            children_list = make_next_gen(generation_list[0:len(generation_list)])
+            top_5 = generation_list[len(generation_list)-5:len(generation_list)]
+            children_list = children_list + top_5
 
             sim_list = children_list
 
@@ -172,14 +172,18 @@ def main():
             start_subgen = 0
             end_subgen = 10
 
-        # moves to the next sub-generation when subgen_duration runs out
+        # moves to the next sub-generation when subgen_duration runs out and no sim moves past the max distance in subgen_duration_bonus period of time (if they don't move longer subgen_duration_bonus)
         if elapsed_subgen_time >= subgen_duration:
-            sub_start_time = time.time()
-            subgen_count += 1
-            sub_sim_time = 0.0
+            if elapsed_last_max_time >= subgen_duration_bonus:
+                sub_start_time = app_time
+                subgen_count += 1
+                sub_sim_time = 0.0
 
-            start_subgen += 10
-            end_subgen += 10
+                start_subgen += 10
+                end_subgen += 10
+
+                last_max = 0
+                last_max_time = 0
 
         rl.draw_text("Max Distance: " + str(round(max_x, 0) / 1000.0) + "m", 20, 0, 50,
                      rl.Color(153, 204, 255, 255))
