@@ -40,7 +40,7 @@ agg_df = agg_df.drop(['network'], axis = 1)
 agg_df.plot.line(xlabel = 'Generation #', ylabel = 'Fitness')
 
 
-agg_df.plot(x = "Runner", y = "Fitness"  )
+#agg_df.plot(xlabel = "Runner", ylabel = "Fitness"  )
 '''
 plt.hist(agg_df.fitness,  bins = 100, color = "gold")#agg_df.index,
 plt.ylabel("Runner")
@@ -92,9 +92,14 @@ gen_num = []
 for i in range( int(len(agg_df.index) / 100) ):
     gen_num.append(i)
 
-avg_df.plot.line(title = "Average Fitness For Each Generation", xticks = gen_num,
+avg_df = avg_df.set_axis(gen_num) 
+
+#xticks = [0, 84, 168, 252, 336, 420, 504, 588, 672, 756 ]
+avg_df.plot.line(title = "Average Fitness For Each Generation", legend = False,
+                 xticks = [0, 151, 302, 453, 604, 755 ],
                  xlabel = 'Generation #', ylabel = 'Fitness', color = "orange")
-plt.savefig('testname.png', dpi=1200, bbox_inches ="tight")
+
+plt.savefig('avg_fit2.png', dpi=1200, bbox_inches ="tight")
 
 avg_df.plot.bar(xlabel = 'Generation #', ylabel = 'Fitness')
 
