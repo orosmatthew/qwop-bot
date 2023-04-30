@@ -16,7 +16,7 @@ pd.set_option('expand_frame_repr', False)
 #df.head()
 #df.describe()
 
-directory = "out/0"
+directory = "0"
 
 temp = []                           
 agg_df = pd.DataFrame()             
@@ -60,26 +60,39 @@ plt.title("Histogram Fitness Value Of Each Runner")
 plt.show()
 
 
-bins = [-.115, -0.005, 0.105, 0.215,0.325, 0.435 ]
+#bins = [-0.231, 0.231, 0.462, 0.693, 0.824, 1.055, 1.286, 2.101, 9.916 ]
+bins = [-0.231, 1.7984, 3.8278, 5.8572, 7.8866,  9.916]
 bin_df = agg_df.groupby(pd.cut(agg_df['fitness'], bins=bins)).fitness.count()
 bin_df.plot(kind='bar', xlabel = "Fitness Value", ylabel = "Number of Runners",
-            color = "gold", title = "Fitness Values of Runners", rot = 45)
-plt.savefig('testname.png', dpi=1200, bbox_inches ="tight")
+            color = "gold", title = "Frequency of Fitness Values", rot = 45)
+bars = plt.hist(data)
+plt.bar_label(bars)
+plt.savefig('fit_freq.png', dpi=1200, bbox_inches ="tight")
 
 
 
 #agg_df.plot.bar(xlabel = 'Generation #', ylabel = 'Fitness') #TO-DO fix or remove
 
 
-avg_df = agg_df.drop(['color'], axis = 1)
+temp_df = agg_df.drop(['color'], axis = 1)
+'''
 avg_df = pd.DataFrame( [ agg_df[0:100].mean() ,agg_df[100:200].mean(),
                         agg_df[200:300].mean(), agg_df[300:400].mean(),
                         agg_df[400:500].mean(), agg_df[500:600].mean(), 
                         agg_df[600:700].mean(), agg_df[700:800].mean(),
                         agg_df[800:900].mean(), agg_df[900:1000].mean() ])
+'''
 
+avg_df = pd.DataFrame()
+for i in range( int(len(agg_df.index) / 100) ):
+    avg_df = pd.concat([avg_df, temp_df[(i*100):(i*100 + 100)].mean()] )
+    
 
-avg_df.plot.line(title = "Average Fitness For Each Generation", xticks = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+gen_num = []
+for i in range( int(len(agg_df.index) / 100) ):
+    gen_num.append(i)
+
+avg_df.plot.line(title = "Average Fitness For Each Generation", xticks = gen_num,
                  xlabel = 'Generation #', ylabel = 'Fitness', color = "orange")
 plt.savefig('testname.png', dpi=1200, bbox_inches ="tight")
 
@@ -87,8 +100,10 @@ avg_df.plot.bar(xlabel = 'Generation #', ylabel = 'Fitness')
 
 
 
-
-
+avg_df.plot.line(title = "Average Fitness For Generations 0 to 755",
+                 xlabel = 'Generations', xticks = [],
+                 ylabel = 'Fitness', color = "orange", legend = False)
+plt.savefig('avg_fit.png', dpi=1200, bbox_inches ="tight")
 
 '''Old 
 
