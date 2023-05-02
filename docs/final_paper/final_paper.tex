@@ -266,7 +266,7 @@ The next difficulty we encountered is the structure of the neural network for ag
 
 \section{Visualization}
 
-\par To collect data from our program, we initially implemented the ability to save the program's current state as a JSON file. As we further developed our program, we expanded the save functionality to separate the data of each generation that was generated in the genetic algorithm. The JSON that we save includes the color of each runner, the bias values of the neural network, and the fitness value of the runners. We replicated a similar saving process for the deep q-learning algorithm to save each episode's values for epsilon, score, average score, and maximum reward. We decided to utilize the Pandas and Matplotlib libraries in Python to visualize our data, as we were already working with Python for our program, and we have experience using those libraries to manage and visualize data. The JSON files are imported into the visualization program where they are concatenated into a single data frame. For the genetic algorithm, it is not useful to visualize the network biases, so they were dropped from the data frame. The visualizations that we intend to use include a histogram of the fitness values of each of the runners in a given generation (Figure 4), a graph of the average fitness values for each generation of runners (Figure 5), and a dual-axis graph that shows the average score and epsilon values for each episode of the Deep Q-Learning algorithm ( TODO: avg\_score\_epsilon figure 6).
+\par To collect data from our program, we initially implemented the ability to save the program's current state as a JSON file. As we further developed our program, we expanded the save functionality to separate the data of each generation that was generated in the genetic algorithm. The JSON that we save includes the color of each runner, the bias values of the neural network, and the fitness value of the runners. We replicated a similar saving process for the deep q-learning algorithm to save each episode's values for epsilon, score, average score, and maximum reward. We decided to utilize the Pandas and Matplotlib libraries in Python to visualize our data, as we were already working with Python for our program, and we have experience using those libraries to manage and visualize data. The JSON files are imported into the visualization program where they are concatenated into a single data frame. For the genetic algorithm, it is not useful to visualize the network biases, so they were dropped from the data frame. The visualizations that we intend to use include a histogram of the fitness values of each of the runners in a given generation, a graph of the average fitness values for each generation of runners, and a dual-axis graph that shows the average score and epsilon values for each episode of the Deep Q-Learning algorithm.
 
 \begin{figure}[h]
 \caption
@@ -310,14 +310,18 @@ For the genetic approach, the simulation was run for about 8 hours, which allowe
 
 \par Based on the graph, it can be inferred that the DQL algorithm exhibited superior performance in episodes 100 to 250, after which the average score began to decline. A closer examination of the graph reveals that the epsilon value was below 35\% during the episode range where the average score started to decline. This suggests that the epsilon decay rate was high and could have directly influenced the overall development of the agent's neural network. If the epsilon decreases too rapidly, the neural network may not have sufficient time to adapt to a reduced reliance on random actions. Additionally, if the epsilon value is close to zero, the agent may not be able to execute desired actions, which can negatively impact the agent's performance.
 
-[TODO: max reward DQL graph]
+\begin{figure}[h]
+\caption{Max reward and epsilon}
+\centering
+\includegraphics[width=7cm]{max_reward_epsilon.png}
+\end{figure}
 
 \par Based on the graph depicting the maximum reward, a similar pattern can be observed. Specifically, it can be noted that the maximum distance the agent traveled using the DQL algorithm was 40 meters, and this was achieved during episodes 100 to 250. However, after this period, the maximum distance for each episode gradually decreased due to the problem mentioned previously.
 
 \subsection{Comparison}
-\par Both simulations were conducted over a period of approximately 8-9 hours overnight. [TODO: FIGURE HERE] The genetic algorithm approach exhibited a clear and consistent improvement over generations, as shown in the accompanying figure. Specifically, the simulation was able to run for a total of 755 generations, and improvements were observed in jumps followed by plateaus. This pattern indicates that once a breakthrough in behavior was discovered through some form of mutation, it quickly spread to the rest of the gene pool and plateaued until the next significant improvement occurred.
+\par Both simulations were conducted over a period of approximately 8-9 hours overnight. The genetic algorithm approach exhibited a clear and consistent improvement over generations, as shown in the accompanying figure. Specifically, the simulation was able to run for a total of 755 generations, and improvements were observed in jumps followed by plateaus. This pattern indicates that once a breakthrough in behavior was discovered through some form of mutation, it quickly spread to the rest of the gene pool and plateaued until the next significant improvement occurred.
+
 \par On the other hand, in the DQL approach, the development of the agent can be observed over a specific period, but the improvements are rapid and unpredictable to some extent. The simulation was able to run for a total of 500 episodes, and promising results were observed between episodes 100 and 250 when the epsilon value was sufficiently high. If we compare the algorithms based on the maximum distance achieved, the DQL algorithm exhibits an advantage over the genetic algorithm since was able to reach a 40-meter mark, whereas the genetic algorithm reached a 10-meter mark. Nonetheless, the genetic algorithm demonstrates stable improvements that could eventually lead to better results.
-\bibliography{references.bib}
 
 \section{Future Considerations}
 
@@ -326,5 +330,7 @@ Some future considerations for the inputs of the neural network would be to send
 \par Another idea might be to have a memory neuron which would be an output neuron whose output is connected to an input neuron. This idea was utilized in the DQL approach and could be useful for the genetic algorithm due several reasons. This could potentially allow for the network to retain some type of memory about its computational state. This may be a helpful addition as the problem being solved is highly temporal and so the ability for the network to retain some kind of information about the previous frame to the next could prove to be beneficial. 
 
 \par It was initially intended for the agent to walk forward instead of simply moving forward. However, the collision detection feature, which is inherent to the agents in each approach, was not implemented. This feature detects when the agent touches the ground with a limb higher than its hips. By utilizing this information, significant decrements could be made to the fitness function to encourage the agent to maintain its upper body at an acceptable height and prevent it from falling to the ground. This would potentially lead the agent learn how to balance the body, which would lead the agent a step closer to walking or at least moving forward by standing on its feet.
+
+\bibliography{references.bib}
 
 \end{document}
