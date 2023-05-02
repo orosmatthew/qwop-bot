@@ -32,12 +32,59 @@ def sortLen(item):
 temp.sort(key=sortLen)       
       
 for i in temp:
-    agg_df = pd.concat([agg_df, pd.read_json(i)] ) 
-
+    agg_df = pd.concat([agg_df, pd.read_json(i, lines = True)] ) 
+    
 
 agg_df = agg_df.drop(['network'], axis = 1)
 
-agg_df.plot.line(xlabel = 'Generation #', ylabel = 'Fitness')
+agg_df.plot.line(x = 'episode', y = 'max_reward',
+                 xlabel = 'Episode #', ylabel = 'Max Reward',
+                 color = 'gold')
+plt.savefig('max_reward.png', dpi=1200, bbox_inches ="tight")
+
+agg_df.plot.line(x = 'episode', y = 'epsilon', xlabel = 'Episode #', ylabel = 'Epsilon')
+
+agg_df.plot.line(x = 'episode', y = 'score',
+                 xlabel = 'Episode #', ylabel = 'Score',
+                 color = 'green')
+plt.savefig('score.png', dpi=1200, bbox_inches ="tight")
+
+agg_df.plot.line(x = 'episode', y = 'avg_score', xlabel = 'Episode #', ylabel = 'Average Score')
+
+agg_df.plot.line(x = 'epsilon', y = 'avg_score', xlabel = 'Epsilon', ylabel = 'Average Score')
+
+agg_df.plot.line(x = 'epsilon', y = 'max_reward', xlabel = 'Epsilon', ylabel = 'Reward')
+
+'''
+fig, ax = plt.subplots(figsize=(12,5))
+ax2 = ax.twinx()
+ax.set_title('Max Reward and Epsilon For Each Episode')
+ax.plot(agg_df['episode'], agg_df['max_reward'], color='green', marker='.')
+ax2.plot(agg_df['episode'], agg_df['epsilon'], color='gold', marker='x')
+ax.set_ylabel('Max Reward')
+ax2.set_ylabel('Epsilon')
+ax.legend(['Max Reward'])
+ax2.legend(['Epsilon'], loc = 'upper center')
+ax.yaxis.grid(color='lightgray', linestyle='dashed')
+plt.tight_layout()
+#plt.show()
+plt.savefig('max_reward_epsilon.png', dpi=1200, bbox_inches ="tight")
+'''
+
+fig, ax = plt.subplots(figsize=(10,7)) #12x5
+ax2 = ax.twinx()
+ax.set_title('Average Score and Epsilon For Each Episode')
+ax.plot(agg_df['episode'], agg_df['avg_score'], color='green', marker='.')
+ax2.plot(agg_df['episode'], agg_df['epsilon'], color='gold', marker='x')
+ax.set_ylabel('avg_score')
+ax2.set_ylabel('Epsilon')
+ax.legend(['avg_score'])
+ax2.legend(['Epsilon'], loc = 'upper center')
+ax.yaxis.grid(color='lightgray', linestyle='dashed')
+plt.tight_layout()
+#plt.show()
+plt.savefig('avg_score_epsilon.png', dpi=1000, bbox_inches ="tight")
+
 
 
 #agg_df.plot(xlabel = "Runner", ylabel = "Fitness"  )
@@ -61,10 +108,11 @@ plt.show()
 
 
 #bins = [-0.231, 0.231, 0.462, 0.693, 0.824, 1.055, 1.286, 2.101, 9.916 ]
-bins = [-0.231, 1.7984, 3.8278, 5.8572, 7.8866,  9.916]
+bins = [-0.231, 0.988, 1.798, 3.828, 9.916]
 bin_df = agg_df.groupby(pd.cut(agg_df['fitness'], bins=bins)).fitness.count()
 bin_df.plot(kind='bar', xlabel = "Fitness Value", ylabel = "Number of Runners",
             color = "gold", title = "Frequency of Fitness Values", rot = 45)
+
 bars = plt.hist(data)
 plt.bar_label(bars)
 plt.savefig('fit_freq.png', dpi=1200, bbox_inches ="tight")
@@ -93,6 +141,7 @@ for i in range( int(len(agg_df.index) / 100) ):
     gen_num.append(i)
 
 avg_df = avg_df.set_axis(gen_num) 
+avg_df = avg_df.rename(columns = {0 : "fitness"} )
 
 #xticks = [0, 84, 168, 252, 336, 420, 504, 588, 672, 756 ]
 avg_df.plot.line(title = "Average Fitness For Each Generation", legend = False,
@@ -109,6 +158,13 @@ avg_df.plot.line(title = "Average Fitness For Generations 0 to 755",
                  xlabel = 'Generations', xticks = [],
                  ylabel = 'Fitness', color = "orange", legend = False)
 plt.savefig('avg_fit.png', dpi=1200, bbox_inches ="tight")
+
+
+bins = [0.157380, 0.508773, 0.639843, 0.884770]
+bin_df = avg_df.groupby(pd.cut(avg_df['fitness'], bins=bins)).fitness.count()
+bin_df.plot(kind='bar', xlabel = "Fitness Value", ylabel = "Number of Generations",
+            color = "gold", title = "Frequency of Average Fitness Values", rot = 45)
+plt.savefig('avg_fit_freq.png', dpi=1200, bbox_inches ="tight")
 
 '''Old 
 
